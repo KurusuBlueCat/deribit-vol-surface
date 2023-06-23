@@ -1,6 +1,9 @@
 #include "CubicSmile.h"
 #include "BSAnalytics.h"
+#include "Date.h"
 #include <iostream>
+#include <cmath>
+#include <map>
 #include <cmath>
 
 double GetStrike(const std::string& contractName){
@@ -16,15 +19,16 @@ double GetStrike(const std::string& contractName){
 }
 
 CubicSmile CubicSmile::FitSmile(const datetime_t& expiryDate, const std::vector<TickData>& volTickerSnap) {
+    //volTickerSnap must only include OTM options
     double fwd, T, atmvol, bf25, rr25, bf10, rr10;
     uint64_t LatestUpdateTimeStamp = 0;
-    datetime_t dateNow; dateExpiry = expiryDate;
+    datetime_t dateNow;
     std::map<double, double> strikeImpliedVol;
 
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
-    for (const auto& Iter: volTickerSnap){
-      if ( LatestUpdateTimeStamp < Iter.LastUpdateTimestamp){
+    for (auto& Iter: volTickerSnap){
+      if ( LatestUpdateTimeStamp < Iter.LastUpdateTimeStamp){
         LatestUpdateTimeStamp = Iter.LastUpdateTimeStamp;
         fwd = Iter.UnderlyingPrice;
       }
@@ -35,15 +39,54 @@ CubicSmile CubicSmile::FitSmile(const datetime_t& expiryDate, const std::vector<
     // - get latest underlying price from all tickers based on LastUpdateTimeStamp
     // - get time to expiry T
     dateNow = LatestUpdateTimeStamp/1000;
-    T = dateExpiry - dateNow;
+    T = expiryDate - dateNow;
     // - fit the 5 parameters of the smile, atmvol, bf25, rr25, bf10, and rr10 using L-BFGS-B solver, to the ticker data
-    
-    
+
+    // 1. TODO:
+    //We estimate 5 param using 5 closest iv to a given delta
+    // atmvol = ?;
+    // bf25 = ?;
+    // rr25 = ?;
+    // bf10 = ?;
+    // rr10 = ?;
+
+    // 2. TODO:
+    // setup VectorXd and fit for sse
+    // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
+
+    // double sse;
+
+    //int niter = solver.minimize(smileError, x, sse);
+
+
+    // 3. TODO:
+    // Instantiate a new CubicSmile (may be optimizeable if heap memory can be avoided)
+    // CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+
+    //somehow return CubicSmile using x which will be modified inplace by lbfsg
     
     // ....
     // after the fitting, we can return the resulting smile
     return CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
 }
+
+// 4. Construct a functor class for optimization
+//smileError will have access to a 'fixed' fwd, T, vector<TickData> volTickerSnap;
+// static double CubicSmile::smileError(double atmvol, double bf25, double rr25, double bf10, double rr10){
+//     CubicSmile guessSmile = CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+
+//     vector<TickData> volTickerSnap;
+
+//     double sse=0;
+//     double error;
+//     for (auto td : volTickerSnap){
+//         error = ((td.BestAskIV + td.BestBidIV)/2) - guessSmile.Vol(td.Strike);
+//         error = pow(error, 2);
+//         sse += error;
+//     }
+    
+//     return sse;
+// }
 
 CubicSmile::CubicSmile( double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10) {
     // convert delta marks to strike vol marks, setup strikeMarks, then call BUildInterp

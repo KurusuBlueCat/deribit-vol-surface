@@ -73,15 +73,11 @@ void VolSurfBuilder<Smile>::PrintInfo(){
         datetime_t expiryDateTime = expiry;
         tickersByExpiry[expiryDateTime].push_back(tickIter->second);
 
-        
     }
 
     std::cout << tickersByExpiry.size() << std::endl;
 
     for (auto tickIter2=tickersByExpiry.begin(); tickIter2!=tickersByExpiry.end(); ++tickIter2){
-<<<<<<< HEAD
-            std::cout << (tickIter2->second).size() << std::endl;
-=======
         
         std::cout << (tickIter2->second).size() << std::endl;
         uint64_t LatestUpdateTimeStamp = 0;
@@ -89,8 +85,13 @@ void VolSurfBuilder<Smile>::PrintInfo(){
         std::string UIndex;
         datetime_t dateNow; 
 
+        std::cout << "Given strike" << std::endl;
+
         for (auto tickIter3: tickIter2->second){
+            tickIter3.ContractName
             if (LatestUpdateTimeStamp < tickIter3.LastUpdateTimeStamp){
+
+                
             
                 LatestUpdateTimeStamp = tickIter3.LastUpdateTimeStamp;
                 LatestUnderlyingPrice = tickIter3.UnderlyingPrice;
@@ -100,6 +101,7 @@ void VolSurfBuilder<Smile>::PrintInfo(){
         dateNow = LatestUpdateTimeStamp/1000;
         std::cout << (tickIter2->second)[0].UnderlyingIndex << std::endl;
         std::cout << LatestUpdateTimeStamp << std::endl;
+        std::cout << 
         std::cout << LatestUnderlyingPrice << std::endl;
 
         std::cout << "Date Now: ";
@@ -124,7 +126,6 @@ void VolSurfBuilder<Smile>::PrintInfo(){
 
         std::cout << dateDiff << std::endl;
           
->>>>>>> origin/master
         }
 } 
 
