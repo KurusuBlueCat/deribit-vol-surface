@@ -3,14 +3,43 @@
 #include <iostream>
 #include <cmath>
 
-CubicSmile CubicSmile::FitSmile(const std::vector<TickData>& volTickerSnap) {
+double GetStrike(const std::string& contractName){
+  std::string ticker_name = contractName;
+  std::size_t hyphenPos = ticker_name.find('-');
+  std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+  std::size_t thirdHyphenPos = ticker_name.find('-', secondHyphenPos + 1);
+
+  auto strikeString = ticker_name.substr(secondHyphenPos + 1, thirdHyphenPos - secondHyphenPos - 1);
+  double strike = std::stod(strikeString);
+
+  return strike;
+}
+
+CubicSmile CubicSmile::FitSmile(const datetime_t& expiryDate, const std::vector<TickData>& volTickerSnap) {
     double fwd, T, atmvol, bf25, rr25, bf10, rr10;
+    uint64_t LatestUpdateTimeStamp = 0;
+    datetime_t dateNow; dateExpiry = expiryDate;
+    std::map<double, double> strikeImpliedVol;
+
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
-    
+    for (const auto& Iter: volTickerSnap){
+      if ( LatestUpdateTimeStamp < Iter.LastUpdateTimestamp){
+        LatestUpdateTimeStamp = Iter.LastUpdateTimeStamp;
+        fwd = Iter.UnderlyingPrice;
+      }
+      auto midIV = 0.5*(Iter.BestAskIV + Iter.BestBidIV);
+      auto strike = GetStrike(Iter.ContractName);
+      strikeImpliedVol[strike] = midIV;
+    }
     // - get latest underlying price from all tickers based on LastUpdateTimeStamp
     // - get time to expiry T
+    dateNow = LatestUpdateTimeStamp/1000;
+    T = dateExpiry - dateNow;
     // - fit the 5 parameters of the smile, atmvol, bf25, rr25, bf10, and rr10 using L-BFGS-B solver, to the ticker data
+    
+    
+    
     // ....
     // after the fitting, we can return the resulting smile
     return CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);

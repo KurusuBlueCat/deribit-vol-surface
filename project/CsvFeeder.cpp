@@ -14,6 +14,17 @@ double ParseValue(const std::string& value) {
     return value.empty() ? std::numeric_limits<double>::quiet_NaN() : std::stod(value);
 }
 
+/* datetime_t GetExpiry(const std::string& contractName){
+    std::string ticker_name = contractName;
+    std::size_t hyphenPos = ticker_name.find('-');
+    std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+
+    std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+    datetime_t expiryDateTime = expiry;
+
+    return expiryDateTime;
+} */
+
 bool ReadNextMsg(std::ifstream& file, Msg& msg) {
     if (file.eof()) {
         return false;
