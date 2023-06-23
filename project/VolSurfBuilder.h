@@ -79,6 +79,9 @@ void VolSurfBuilder<Smile>::PrintInfo(){
     std::cout << tickersByExpiry.size() << std::endl;
 
     for (auto tickIter2=tickersByExpiry.begin(); tickIter2!=tickersByExpiry.end(); ++tickIter2){
+<<<<<<< HEAD
+            std::cout << (tickIter2->second).size() << std::endl;
+=======
         
         std::cout << (tickIter2->second).size() << std::endl;
         uint64_t LatestUpdateTimeStamp = 0;
@@ -121,6 +124,7 @@ void VolSurfBuilder<Smile>::PrintInfo(){
 
         std::cout << dateDiff << std::endl;
           
+>>>>>>> origin/master
         }
 } 
 
