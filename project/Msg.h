@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+
 struct TickData {
     std::string ContractName;
     double BestBidPrice;

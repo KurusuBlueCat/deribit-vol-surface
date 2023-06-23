@@ -26,14 +26,15 @@ public:
         min = tm->tm_min;
         sec = tm->tm_sec;
     }
+    
     datetime_t(std::string dateString){
 
         std::tm* tm = new std::tm{};
         std::istringstream ss(dateString);
         ss >> std::get_time(tm, "%d%b%y");
 
-        year = tm->tm_year + 1900;
-        month = tm->tm_mon + 1;
+        year = tm->tm_year;
+        month = tm->tm_mon;
         day = tm->tm_mday;
         hour = tm->tm_hour;
         min = tm->tm_min;
