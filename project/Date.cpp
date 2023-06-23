@@ -28,5 +28,3 @@ std::istream& operator>>(std::istream& is, datetime_t& d)
   is >> d.year >> d.month >> d.day;
   return is;
 }
- 
-
