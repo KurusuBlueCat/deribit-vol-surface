@@ -3,6 +3,7 @@ add_subdirectory(date)
 
 add_library(CsvFeeder STATIC CsvFeeder.cpp)
 add_library(Msg STATIC Msg.cpp)
+add_library(Date STATIC Date.cpp)
 
 add_executable(step1 step1.cpp)
 
@@ -10,4 +11,4 @@ target_link_libraries(step1 CsvFeeder Msg)
 
 add_executable(step2 step2.cpp)
 
-target_link_libraries(step2 CsvFeeder Msg)
+target_link_libraries(step2 CsvFeeder Msg Date)

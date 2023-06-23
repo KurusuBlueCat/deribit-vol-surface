@@ -21,6 +21,9 @@ struct TickData {
     double LastPrice;
     double OpenInterest;
     uint64_t LastUpdateTimeStamp;
+    // double strike;
+    // double midIV;
+    
 };
 
 //std::ostream& operator<< (std::ostream& os, const TickData& tick);
