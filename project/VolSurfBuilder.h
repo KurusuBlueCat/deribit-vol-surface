@@ -4,6 +4,7 @@
 #include <map>
 #include "Msg.h"
 #include "Date.h"
+#include <string>
 
 template<class Smile>
 class VolSurfBuilder {
@@ -16,6 +17,8 @@ protected:
     // here we use a map from contract name to BestLevelInfo, the key is contract name
     std::map<std::string, TickData> currentSurfaceRaw;
 };
+
+
 
 template<class Smile>
 void VolSurfBuilder<Smile>::Process(const Msg& msg){
@@ -76,7 +79,48 @@ void VolSurfBuilder<Smile>::PrintInfo(){
     std::cout << tickersByExpiry.size() << std::endl;
 
     for (auto tickIter2=tickersByExpiry.begin(); tickIter2!=tickersByExpiry.end(); ++tickIter2){
-            std::cout << (tickIter2->second).size() << std::endl;
+        
+        std::cout << (tickIter2->second).size() << std::endl;
+        uint64_t LatestUpdateTimeStamp = 0;
+        double LatestUnderlyingPrice = 0;
+        std::string UIndex;
+        datetime_t dateNow; 
+
+        for (auto tickIter3: tickIter2->second){
+            if (LatestUpdateTimeStamp < tickIter3.LastUpdateTimeStamp){
+            
+                LatestUpdateTimeStamp = tickIter3.LastUpdateTimeStamp;
+                LatestUnderlyingPrice = tickIter3.UnderlyingPrice;
+
+            }
+        }
+        dateNow = LatestUpdateTimeStamp/1000;
+        std::cout << (tickIter2->second)[0].UnderlyingIndex << std::endl;
+        std::cout << LatestUpdateTimeStamp << std::endl;
+        std::cout << LatestUnderlyingPrice << std::endl;
+
+        std::cout << "Date Now: ";
+        std::cout << dateNow.year << "-";
+        std::cout << dateNow.month << "-";
+        std::cout << dateNow.day << "-";
+        std::cout << dateNow.hour << "-";
+        std::cout << dateNow.min << "-";
+        std::cout << dateNow.sec << std::endl;
+
+        std::cout << "Expiry: ";
+        std::cout << (tickIter2->first).year << "-";
+        std::cout << (tickIter2->first).month << "-";
+        std::cout << (tickIter2->first).day << "-";
+        std::cout << (tickIter2->first).hour << "-";
+        std::cout << (tickIter2->first).min << "-";
+        std::cout << (tickIter2->first).sec << std::endl;
+
+        auto dateDiff = (tickIter2->first) - dateNow;
+
+        
+
+        std::cout << dateDiff << std::endl;
+          
         }
 } 
 
@@ -98,7 +142,7 @@ std::map<datetime_t, std::pair<Smile, double> > VolSurfBuilder<Smile>::FitSmiles
     std::map<datetime_t, std::pair<Smile, double> > res{};
     // then create Smile instance for each expiry by calling FitSmile() of the Smile
     for (auto iter = tickersByExpiry.begin(); iter != tickersByExpiry.end(); iter++) {
-        auto sm = Smile::FitSmile(iter->second);  // TODO: you need to implement FitSmile function in CubicSmile
+        auto sm = Smile::FitSmile(iter->first, iter->second);  // TODO: you need to implement FitSmile function in CubicSmile
         double fittingError = 0;
         // TODO (Step 3): we need to measure the fitting error here
         res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));
