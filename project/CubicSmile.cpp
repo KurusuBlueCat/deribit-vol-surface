@@ -7,6 +7,7 @@ CubicSmile CubicSmile::FitSmile(const std::vector<TickData>& volTickerSnap) {
     double fwd, T, atmvol, bf25, rr25, bf10, rr10;
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
+    
     // - get latest underlying price from all tickers based on LastUpdateTimeStamp
     // - get time to expiry T
     // - fit the 5 parameters of the smile, atmvol, bf25, rr25, bf10, and rr10 using L-BFGS-B solver, to the ticker data

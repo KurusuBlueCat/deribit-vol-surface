@@ -47,28 +47,53 @@ void VolSurfBuilder<Smile>::Process(const Msg& msg){
     }
 }
 
-// template<class Smile>
-// void VolSurfBuilder<Smile>::PrintInfo(){
-//     double minutes=0;
-//     for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
-//         minutes += ((double)(tickIter->second.LastUpdateTimeStamp % (60*60*60*1000)) / 60) / currentSurfaceRaw.size();
-//     }
-//     std::cout << minutes << std::endl;
-// }
+
+/* template<class Smile>
+void VolSurfBuilder<Smile>::PrintInfo(){
+    std::cout << currentSurfaceRaw.size() << std::endl;
+    for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
+        std:: cout << (tickIter->second).ContractName << std::endl;
+    }
+} */
+
 
 template<class Smile>
 void VolSurfBuilder<Smile>::PrintInfo(){
     std::cout << currentSurfaceRaw.size() << std::endl;
+    std::map<datetime_t, std::vector<TickData> > tickersByExpiry{};
     for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
-        std:: cout << (tickIter->second) << std::endl;
+        std::string ticker_name = (tickIter->second).ContractName;
+        std::size_t hyphenPos = ticker_name.find('-');
+        std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+
+        std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+        datetime_t expiryDateTime = expiry;
+        tickersByExpiry[expiryDateTime].push_back(tickIter->second);
+
+        
     }
-}
+
+    std::cout << tickersByExpiry.size() << std::endl;
+
+    for (auto tickIter2=tickersByExpiry.begin(); tickIter2!=tickersByExpiry.end(); ++tickIter2){
+            std::cout << (tickIter2->second).size() << std::endl;
+        }
+} 
 
 template <class Smile>
 std::map<datetime_t, std::pair<Smile, double> > VolSurfBuilder<Smile>::FitSmiles() {
     std::map<datetime_t, std::vector<TickData> > tickersByExpiry{};
     // TODO (Step 3): group the tickers in the current market snapshot by expiry date, and construct tickersByExpiry
     // ...
+    for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
+        std::string ticker_name = (tickIter->second).ContractName;
+        std::size_t hyphenPos = ticker_name.find('-');
+        std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+
+        std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+        datetime_t expiryDateTime = expiry;
+        tickersByExpiry[expiryDateTime].push_back(tickIter->second);
+    }
 
     std::map<datetime_t, std::pair<Smile, double> > res{};
     // then create Smile instance for each expiry by calling FitSmile() of the Smile
