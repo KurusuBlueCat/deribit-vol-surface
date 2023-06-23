@@ -22,7 +22,7 @@ struct TickData {
     uint64_t LastUpdateTimeStamp;
 };
 
-std::ostream& operator<< (std::ostream& os, const TickData& tick);
+//std::ostream& operator<< (std::ostream& os, const TickData& tick);
 
 struct Msg {
     uint64_t timestamp{};

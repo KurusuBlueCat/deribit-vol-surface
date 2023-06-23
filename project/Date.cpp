@@ -1,4 +1,4 @@
-#include "Date.h"
+/* #include "Date.h"
 
 double operator-(const datetime_t& d1, const datetime_t& d2)
 {
@@ -13,8 +13,8 @@ double operator-(const datetime_t& d1, const datetime_t& d2)
 
 bool operator<(const datetime_t& d1, const datetime_t& d2)
 {
-    return d2 - d2 > 0;
-}
+    return d1 - d2 > 0;
+} 
 
 std::ostream& operator<<(std::ostream& os, const datetime_t& d)
 {
@@ -22,8 +22,11 @@ std::ostream& operator<<(std::ostream& os, const datetime_t& d)
   return os;
 }
 
+
 std::istream& operator>>(std::istream& is, datetime_t& d)
 {
   is >> d.year >> d.month >> d.day;
   return is;
 }
+ */
+
