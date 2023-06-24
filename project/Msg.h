@@ -1,12 +1,11 @@
 #ifndef QF633_CODE_MSG_H
 #define QF633_CODE_MSG_H
 
-#include "BSAnalytics.h"
 #include <cstdint>
 #include <string>
 #include <vector>
 
-// enum OptionType {Call, Put};
+enum OptionType {Call, Put};
 struct TickData {
     std::string ContractName;
     double BestBidPrice;

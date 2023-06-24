@@ -3,8 +3,8 @@
 
 #include <cmath>
 #include "Solver/RootSearcher.h"
+#include "Msg.h"
 
-enum OptionType {Call, Put};
 double cnorm(double x)
 {
   // constants
