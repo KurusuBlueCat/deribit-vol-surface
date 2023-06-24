@@ -13,3 +13,7 @@ target_include_directories(step1 PUBLIC
 target_include_directories(step2 PUBLIC 
                           "${PROJECT_BINARY_DIR}"
                           "${PROJECT_SOURCE_DIR}")
+
+# target_include_directories(step3 PUBLIC 
+#                           "${PROJECT_BINARY_DIR}"
+#                           "${PROJECT_SOURCE_DIR}")

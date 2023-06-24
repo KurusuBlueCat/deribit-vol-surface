@@ -88,10 +88,7 @@ void VolSurfBuilder<Smile>::PrintInfo(){
         std::cout << "Given strike" << std::endl;
 
         for (auto tickIter3: tickIter2->second){
-            tickIter3.ContractName
             if (LatestUpdateTimeStamp < tickIter3.LastUpdateTimeStamp){
-
-                
             
                 LatestUpdateTimeStamp = tickIter3.LastUpdateTimeStamp;
                 LatestUnderlyingPrice = tickIter3.UnderlyingPrice;
@@ -101,7 +98,6 @@ void VolSurfBuilder<Smile>::PrintInfo(){
         dateNow = LatestUpdateTimeStamp/1000;
         std::cout << (tickIter2->second)[0].UnderlyingIndex << std::endl;
         std::cout << LatestUpdateTimeStamp << std::endl;
-        std::cout << 
         std::cout << LatestUnderlyingPrice << std::endl;
 
         std::cout << "Date Now: ";
@@ -121,8 +117,6 @@ void VolSurfBuilder<Smile>::PrintInfo(){
         std::cout << (tickIter2->first).sec << std::endl;
 
         auto dateDiff = (tickIter2->first) - dateNow;
-
-        
 
         std::cout << dateDiff << std::endl;
           
@@ -147,7 +141,8 @@ std::map<datetime_t, std::pair<Smile, double> > VolSurfBuilder<Smile>::FitSmiles
     std::map<datetime_t, std::pair<Smile, double> > res{};
     // then create Smile instance for each expiry by calling FitSmile() of the Smile
     for (auto iter = tickersByExpiry.begin(); iter != tickersByExpiry.end(); iter++) {
-        auto sm = Smile::FitSmile(iter->first, iter->second);  // TODO: you need to implement FitSmile function in CubicSmile
+        if (iter->second.size() < 10) continue; //skip strike with low no of data
+        Smile sm = Smile::FitSmile(iter->first, iter->second);  // TODO: you need to implement FitSmile function in CubicSmile
         double fittingError = 0;
         // TODO (Step 3): we need to measure the fitting error here
         res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));
