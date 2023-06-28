@@ -19,7 +19,6 @@ protected:
 };
 
 
-
 template<class Smile>
 void VolSurfBuilder<Smile>::Process(const Msg& msg){
     std::map<std::string, TickData>::iterator iter;
@@ -138,7 +137,7 @@ std::map<datetime_t, std::pair<Smile, double> > VolSurfBuilder<Smile>::FitSmiles
         tickersByExpiry[expiryDateTime].push_back(tickIter->second);
     }
 
-    std::map<datetime_t, std::pair<Smile, double> > res{};
+    std::map<datetime_t, std::pair<Smile, double>> res{};
     // then create Smile instance for each expiry by calling FitSmile() of the Smile
     for (auto iter = tickersByExpiry.begin(); iter != tickersByExpiry.end(); iter++) {
         if (iter->second.size() < 10) continue; //skip strike with low no of data
