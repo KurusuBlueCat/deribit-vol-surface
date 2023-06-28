@@ -77,11 +77,6 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
 
     // 1. TODO:
     // We estimate 5 param using 5 closest iv to a given delta
-    // atmvol = ?;
-    // bf25 = ?;
-    // rr25 = ?;
-    // bf10 = ?;
-    // rr10 = ?;
 
     std::vector<double> threshVector = {0.9, 0.75, 0.5, 0.25, 0.1};
 
@@ -134,15 +129,15 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     // setup VectorXd and fit for sse
     // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
 
-    {
-        CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
-        // for (const auto& kVolPair: strikeImpliedVol){
-        //     csCandidate.Vol(kVolPair.first) - 
-        // }
+    // {
+    //     CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    //     for (const auto& kVolPair: strikeImpliedVol){
+    //         csCandidate.Vol(kVolPair.first) - 
+    //     }
         
         
         
-    }
+    // }
     // double sse;
 
     // int niter = solver.minimize(smileError, x, sse);

@@ -1,4 +1,6 @@
 # add_executable(step1 step1.cpp)
+include_directories(Solver)
+add_subdirectory(Solver)
 add_subdirectory(date)
 
 add_library(CsvFeeder STATIC CsvFeeder.cpp)
