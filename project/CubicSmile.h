@@ -20,7 +20,7 @@ public:
     static CubicSmile FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &td); // FitSmile creates a Smile by fitting the smile params to the input tick data, it assume the tickData are of the same expiry
     // constructor, given the underlying price and marks, convert them to strike to vol pairs (strikeMarks), and construct cubic smile
     CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10); // convert parameters to strikeMarks, then call BuildInterp() to create the cubic spline interpolator
-    double Vol(double strike);                                                                                       // interpolate
+    double Vol(double strike); // interpolate
 
 private:
     void BuildInterp();
@@ -44,54 +44,44 @@ tuple<uint64_t, double> getLatestTimeAndPrice(const std::vector<TickData> &volTi
     return {LatestUpdateTimeStamp, fwd};
 }
 
-bool isOTM(double underlyingPrice, const TickData &td){
-    bool strikeLowerThanPrice = td.GetStrike() < underlyingPrice;
-    bool isPut = td.GetOptionType() == OptionType::Put;
-    return strikeLowerThanPrice == isPut;
-}
-
 CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &volTickerSnap)
 {
     // volTickerSnap must only include OTM options
 
+    // - get latest underlying price from all tickers based on LastUpdateTimeStamp
     //structured binding. datetime_t T, double fwd;
     auto [latestTime, fwd] = getLatestTimeAndPrice(volTickerSnap);
-    double T = expiryDate - (latestTime / 1000);
 
-    // TODO (step 3): fit a CubicSmile that is close to the raw tickers
-    // - make sure all tickData are on the same expiry and same underlying
-
-    //This is guarunteed ascending ordered by strike
-    std::map<double, double> strikeImpliedVol;
-
-    for (auto &iter : volTickerSnap)
-    {
-        auto strike = iter.GetStrike();
-        if (!isOTM(fwd, iter)) continue; //skip ITM options
-
-        //Should interpolate on price, then recalculate IV
-        auto midIV = 0.5 * (iter.BestAskIV + iter.BestBidIV);
-
-        strikeImpliedVol[strike] = midIV;
-
-        // std::cout << midIV << ": " << strike << std::endl;
-    }
-    // - get latest underlying price from all tickers based on LastUpdateTimeStamp
     // - get time to expiry T
-    
+    double T = expiryDate - (latestTime / 1000);
 
     // std::cout << latestTime << std::endl;
     // std::cout << T << std::endl;
 
-  // - fit the 5 parameters of the smile, atmvol, bf25, rr25, bf10, and rr10 using L-BFGS-B solver, to the ticker data
+    // TODO (step 3): fit a CubicSmile that is close to the raw tickers
+    // - make sure all tickData are on the same expiry and same underlying
 
-  // 1. TODO:
-  // We estimate 5 param using 5 closest iv to a given delta
-  // atmvol = ?;
-  // bf25 = ?;
-  // rr25 = ?;
-  // bf10 = ?;
-  // rr10 = ?;
+    //map of strike to OTM 
+    //This is guaranteed ascending ordered by strike
+    //This is great, because we can use the ordered property later
+    std::map<double, double> strikeImpliedVol;
+
+    for (auto &td : volTickerSnap)
+    {
+        
+        if (td.isOTM(fwd))  //Only keep OTM option
+            strikeImpliedVol[td.GetStrike()] = td.getMidIV();
+
+        // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
+    }
+
+    // 1. TODO:
+    // We estimate 5 param using 5 closest iv to a given delta
+    // atmvol = ?;
+    // bf25 = ?;
+    // rr25 = ?;
+    // bf10 = ?;
+    // rr10 = ?;
 
     std::vector<double> threshVector = {0.9, 0.75, 0.5, 0.25, 0.1};
 
@@ -102,6 +92,8 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
         double qd = quickDelta(fwd, kVolPair->first, kVolPair->second);
 
         for (auto threshPtr=threshVector.begin(); threshPtr!=threshVector.end(); ++threshPtr){
+            //we can increment through strikeImpliedVol as strike is guaranteed increasing
+            //therefore, qd is guaranteed decreasing
             while ((kVolPair!=strikeImpliedVol.end()) //while there's still kVolPair in the list
                    && (qd > (*threshPtr)))  //and quick delta is still greater than our threshold
             {
@@ -138,24 +130,33 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
               << bf25 << std::endl
               << rr25 << std::endl;
 
-  // 2. TODO:
-  // setup VectorXd and fit for sse
-  // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
+    // 2. TODO:
+    // setup VectorXd and fit for sse
+    // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
 
-  // double sse;
+    {
+        CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+        // for (const auto& kVolPair: strikeImpliedVol){
+        //     csCandidate.Vol(kVolPair.first) - 
+        // }
+        
+        
+        
+    }
+    // double sse;
 
-  // int niter = solver.minimize(smileError, x, sse);
+    // int niter = solver.minimize(smileError, x, sse);
 
-  // 3. TODO:
-  // Instantiate a new CubicSmile (may be optimizeable if heap memory can be avoided)
-  // CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    // 3. TODO:
+    // Instantiate a new CubicSmile (may be optimizeable if heap memory can be avoided)
+    // CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
 
-  // somehow return CubicSmile using x which will be modified inplace by lbfsg
+    // somehow return CubicSmile using x which will be modified inplace by lbfsg
 
-  // ....
-  // after the fitting, we can return the resulting smile
-  // return CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
-  return CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    // ....
+    // after the fitting, we can return the resulting smile
+    // return CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
 }
 
 CubicSmile::CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10)
@@ -173,11 +174,14 @@ CubicSmile::CubicSmile(double underlyingPrice, double T, double atmvol, double b
     double k_qd25 = quickDeltaToStrike(0.25, underlyingPrice, stdev);
     double k_qd10 = quickDeltaToStrike(0.10, underlyingPrice, stdev);
 
-    strikeMarks.push_back(std::pair<double, double>(k_qd90, v_qd90));
-    strikeMarks.push_back(std::pair<double, double>(k_qd75, v_qd75));
-    strikeMarks.push_back(std::pair<double, double>(underlyingPrice, atmvol));
-    strikeMarks.push_back(std::pair<double, double>(k_qd25, v_qd25));
-    strikeMarks.push_back(std::pair<double, double>(k_qd10, v_qd10));
+    //this method will result in 5 strike vol marks anyway
+    strikeMarks.reserve(5); 
+    // OPT: replaced push_back with emplace_back
+    strikeMarks.emplace_back(std::pair<double, double>(k_qd90, v_qd90));
+    strikeMarks.emplace_back(std::pair<double, double>(k_qd75, v_qd75));
+    strikeMarks.emplace_back(std::pair<double, double>(underlyingPrice, atmvol));
+    strikeMarks.emplace_back(std::pair<double, double>(k_qd25, v_qd25));
+    strikeMarks.emplace_back(std::pair<double, double>(k_qd10, v_qd10));
     BuildInterp();
 }
 

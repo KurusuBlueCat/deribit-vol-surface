@@ -45,6 +45,16 @@ struct TickData {
     OptionType GetOptionType() const {
         return ContractName.back() == 'P' ?  OptionType::Put: OptionType::Call;
     }
+
+    bool isOTM(double underlyingPrice) const{
+        bool strikeLowerThanPrice = this->GetStrike() < underlyingPrice;
+        bool isPut = this->GetOptionType() == OptionType::Put;
+        return strikeLowerThanPrice == isPut;
+    }
+
+    bool isOTM() const {
+        return this->isOTM(this->UnderlyingPrice);
+    }
 };
 
 //std::ostream& operator<< (std::ostream& os, const TickData& tick);
