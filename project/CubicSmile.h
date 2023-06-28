@@ -61,6 +61,7 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
 
+    //This is guarunteed ascending ordered by strike
     std::map<double, double> strikeImpliedVol;
 
     for (auto &iter : volTickerSnap)
@@ -91,6 +92,21 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
   // rr25 = ?;
   // bf10 = ?;
   // rr10 = ?;
+    // double v_qd90 = atmvol + bf10 - rr10 / 2.0;
+    // double v_qd75 = atmvol + bf25 - rr25 / 2.0;
+    // double v_qd25 = atmvol + bf25 + rr25 / 2.0;
+    // double v_qd10 = atmvol + bf10 + rr10 / 2.0;
+
+
+    {
+        double qd;
+        double strikeDiff;
+        for (auto [strike, iv] : strikeImpliedVol){
+            qd = quickDelta(fwd, strike, iv/100.0);
+            strikeDiff = strike - fwd;
+            std::cout << strike << ": " << qd << ": " << strikeDiff << std::endl;
+        }
+    }
 
   // 2. TODO:
   // setup VectorXd and fit for sse

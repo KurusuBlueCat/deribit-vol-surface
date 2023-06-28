@@ -10,9 +10,13 @@ struct TickData {
     std::string ContractName;
     double BestBidPrice;
     double BestBidAmount;
+
+    //this is quoted in 'percentage' IV of 50 is 50% or 0.5
     double BestBidIV;
     double BestAskPrice;
     double BestAskAmount;
+
+    //this is quoted in 'percentage' IV of 50 is 50% or 0.5
     double BestAskIV;
     double MarkPrice;
     double MarkIV;
@@ -21,8 +25,9 @@ struct TickData {
     double LastPrice;
     double OpenInterest;
     uint64_t LastUpdateTimeStamp;
-    // TODO:
-    // add MidIV
+    
+    // TODO: Interpolate this from price
+    //this is quoted in 'percentage' IV of 50 is 50% or 0.5
     double getMidIV() const {
         return (BestBidIV + BestAskIV)/2;
     }
