@@ -27,6 +27,7 @@ struct TickData {
     uint64_t LastUpdateTimeStamp;
     
     // TODO: Interpolate this from price
+    // TODO: null and 0 might appear here, find a way to handle them
     //this is quoted in 'percentage' IV of 50 is 50% or 0.5
     double getMidIV() const {
         return (BestBidIV + BestAskIV)/2;
