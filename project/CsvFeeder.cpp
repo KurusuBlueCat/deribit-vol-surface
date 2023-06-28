@@ -85,10 +85,10 @@ bool ReadNextMsg(std::ifstream& file, Msg& msg) {
         tick_data.ContractName = tokens_vector[0];
         tick_data.BestBidPrice = ParseValue(tokens_vector[4]);
         tick_data.BestBidAmount = ParseValue(tokens_vector[5]);
-        tick_data.BestBidIV = ParseValue(tokens_vector[6]);
+        tick_data.BestBidIV = ParseValue(tokens_vector[6])/100; //divide vol by 100 right away
         tick_data.BestAskPrice = ParseValue(tokens_vector[7]);
         tick_data.BestAskAmount = ParseValue(tokens_vector[8]);
-        tick_data.BestAskIV = ParseValue(tokens_vector[9]);
+        tick_data.BestAskIV = ParseValue(tokens_vector[9])/100; //divide vol by 100 right away
         tick_data.MarkPrice = ParseValue(tokens_vector[10]);
         tick_data.MarkIV = ParseValue(tokens_vector[11]);
         tick_data.UnderlyingIndex = tokens_vector[12];
