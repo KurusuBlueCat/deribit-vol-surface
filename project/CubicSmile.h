@@ -11,7 +11,8 @@
 #include <tuple>
 #include <array>
 #include <Eigen/Core>
-#include <LBFGSB.h>
+#include <LBFGS.h>
+#include "GradientMaker.h"
 
 using namespace std;
 
@@ -49,101 +50,7 @@ tuple<uint64_t, double> getLatestTimeAndPrice(const std::vector<TickData> &volTi
     return {LatestUpdateTimeStamp, fwd};
 }
 
-CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &volTickerSnap)
-{
-    // volTickerSnap must only include OTM options
 
-    // - get latest underlying price from all tickers based on LastUpdateTimeStamp
-    //structured binding. datetime_t T, double fwd;
-    auto [latestTime, fwd] = getLatestTimeAndPrice(volTickerSnap);
-
-    // - get time to expiry T
-    double T = expiryDate - (latestTime / 1000);
-
-    // std::cout << latestTime << std::endl;
-    std::cout << T << std::endl;
-
-    // TODO (step 3): fit a CubicSmile that is close to the raw tickers
-    // - make sure all tickData are on the same expiry and same underlying
-
-    //map of strike to OTM 
-    //This is guaranteed ascending ordered by strike
-    //This is great, because we can use the ordered property later
-    std::map<double, double> strikeImpliedVol;
-
-    for (auto &td : volTickerSnap)
-    {
-        
-        if (td.isOTM(fwd))  //Only keep OTM option
-            strikeImpliedVol[td.GetStrike()] = td.getMidIV();
-
-        // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
-    }
-
-    // 1. TODO:
-    // We estimate 5 param using 5 closest iv to a given delta
-
-    std::vector<double> threshVector = {0.9, 0.75, 0.5, 0.25, 0.1};
-
-    std::vector<double> ivVector;
-    ivVector.reserve(threshVector.size());
-    {
-        auto kVolPair = strikeImpliedVol.begin();
-        double qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
-
-        for (auto threshPtr=threshVector.begin(); threshPtr!=threshVector.end(); ++threshPtr){
-            //we can increment through strikeImpliedVol as strike is guaranteed increasing
-            //therefore, qd is guaranteed decreasing
-            while ((kVolPair!=strikeImpliedVol.end()) //while there's still kVolPair in the list
-                   && (qd > (*threshPtr)))  //and quick delta is still greater than our threshold
-            {
-                //use IV of the contract itself. ATMVol does not make too much of a difference
-                //And we are trying to get first estimate, not an exact answer.
-                qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
-                ++kVolPair;
-            }
-            std::cout << qd << std::endl;
-            //add IV of first contract that is less than threshold
-            ivVector.emplace_back(kVolPair->second);
-        }
-    }
-
-    const double& v_qd90 = ivVector[0];
-    const double& v_qd75 = ivVector[1];
-    const double& atmvol = ivVector[2];
-    const double& v_qd25 = ivVector[3];
-    const double& v_qd10 = ivVector[4];
-
-
-    double bf10 = (v_qd10 + v_qd90)/2 - atmvol;
-    double rr10 = v_qd10 - v_qd90;
-    double bf25 = (v_qd25 + v_qd75)/2 - atmvol;
-    double rr25 = v_qd25 - v_qd75;
-
-
-    // 2. TODO:
-
-    const int n = 5;
-    
-    // Set up parameters
-    LBFGSpp::LBFGSParam<double> param;
-    param.epsilon = 1e-6;
-    param.max_iterations = 100;
-
-     // Create solver and function object
-    LLBFGSpp::LBFGSSolver<double> solver(param);
-    smile_MSE fun(n, strikeImpliedVol, fwd, T);
-
-    Eigen::VectorXd x {{atmvol, bf25, rr25, bf10, rr10}}; 
-    double fx;
-    int niter = solver.minimize(fun, x, fx);
-
-    // optimized values
-    double atmvolOpt = x[0], bf25Opt = x[1], rr25Opt = x[2], bf10Opt = x[3], rr10Opt = x[4];
-
-
-    return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
-}
 
 CubicSmile::CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10)
 {
@@ -262,13 +169,106 @@ class smile_MSE
         {
             double fx = compute_MSE(MIV, x);
             for (int i = 0; i < n; i++){
+                // ngrad::FirstCentralDiff numFun(fun, 0.001)
                 // grad[i] = compute_grad(MIV, x, i);
             }
 
             return fx;
         }
         
-}
+};
 
+CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &volTickerSnap)
+{
+    // volTickerSnap must only include OTM options
+
+    // - get latest underlying price from all tickers based on LastUpdateTimeStamp
+    //structured binding. datetime_t T, double fwd;
+    auto [latestTime, fwd] = getLatestTimeAndPrice(volTickerSnap);
+
+    // - get time to expiry T
+    double T = expiryDate - (latestTime / 1000);
+
+    // std::cout << latestTime << std::endl;
+    std::cout << T << std::endl;
+
+    // TODO (step 3): fit a CubicSmile that is close to the raw tickers
+    // - make sure all tickData are on the same expiry and same underlying
+
+    //map of strike to OTM 
+    //This is guaranteed ascending ordered by strike
+    //This is great, because we can use the ordered property later
+    std::map<double, double> strikeImpliedVol;
+
+    for (auto &td : volTickerSnap)
+    {
+        
+        if (td.isOTM(fwd))  //Only keep OTM option
+            strikeImpliedVol[td.GetStrike()] = td.getMidIV();
+
+        // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
+    }
+
+    // 1. TODO:
+    // We estimate 5 param using 5 closest iv to a given delta
+
+    std::vector<double> threshVector = {0.9, 0.75, 0.5, 0.25, 0.1};
+
+    std::vector<double> ivVector;
+    ivVector.reserve(threshVector.size());
+    {
+        auto kVolPair = strikeImpliedVol.begin();
+        double qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
+
+        for (auto threshPtr=threshVector.begin(); threshPtr!=threshVector.end(); ++threshPtr){
+            //we can increment through strikeImpliedVol as strike is guaranteed increasing
+            //therefore, qd is guaranteed decreasing
+            while ((kVolPair!=strikeImpliedVol.end()) //while there's still kVolPair in the list
+                   && (qd > (*threshPtr)))  //and quick delta is still greater than our threshold
+            {
+                //use IV of the contract itself. ATMVol does not make too much of a difference
+                //And we are trying to get first estimate, not an exact answer.
+                qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
+                ++kVolPair;
+            }
+            std::cout << qd << std::endl;
+            //add IV of first contract that is less than threshold
+            ivVector.emplace_back(kVolPair->second);
+        }
+    }
+
+    const double& v_qd90 = ivVector[0];
+    const double& v_qd75 = ivVector[1];
+    const double& atmvol = ivVector[2];
+    const double& v_qd25 = ivVector[3];
+    const double& v_qd10 = ivVector[4];
+
+
+    double bf10 = (v_qd10 + v_qd90)/2 - atmvol;
+    double rr10 = v_qd10 - v_qd90;
+    double bf25 = (v_qd25 + v_qd75)/2 - atmvol;
+    double rr25 = v_qd25 - v_qd75;
+
+    // 2. TODO:
+    const int n = 5;  
+    // Set up parameters
+    LBFGSpp::LBFGSParam<double> param;
+    param.epsilon = 1e-6;
+    param.max_iterations = 100;
+
+     // Create solver and function object
+    LBFGSpp::LBFGSSolver<double> solver(param);
+    smile_MSE fun(n, strikeImpliedVol, fwd, T);
+
+    Eigen::VectorXd x {{atmvol, bf25, rr25, bf10, rr10}}; 
+    double fx;
+    int niter = solver.minimize(fun, x, fx);
+
+    // optimized values
+    double atmvolOpt = x[0], bf25Opt = x[1], rr25Opt = x[2], bf10Opt = x[3], rr10Opt = x[4];
+
+
+    return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
+}
 
 #endif
