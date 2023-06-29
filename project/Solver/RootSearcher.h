@@ -11,7 +11,7 @@ double rfbisect(std::function<double(double)> f, double a, double b, double tol)
     double c;
     while( (b-a)/2 > tol ) {
         c = (a+b) / 2.0;
-        std::cout << "(a, b) = (" << a << ", " << b << ")" << std::endl;
+        // std::cout << "(a, b) = (" << a << ", " << b << ")" << std::endl;
         if(std::abs(f(c)) < tol)
             return c;
         else {
@@ -82,7 +82,7 @@ double rfbrent(std::function<double(double)> f, double a, double b, double tol)
         else
             b += xm>0? tol1*xm : tol1*(-xm);
         fb=f(b);
-        std::cout << "(a, b) = (" << a << ", " << b << ")" << std::endl;
+        // std::cout << "(a, b) = (" << a << ", " << b << ")" << std::endl;
     }
     throw("Maximum number of iterations exceeded in rfbrent");
 }

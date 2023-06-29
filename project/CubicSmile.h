@@ -22,6 +22,11 @@ public:
     CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10); // convert parameters to strikeMarks, then call BuildInterp() to create the cubic spline interpolator
     double Vol(double strike); // interpolate
 
+    //TODO: implement a function that reports the Smile's property to a csv line
+    std::string csvLineReport();
+    //TODO: and this one, with error report
+    std::string csvLineReport(const std::vector<TickData> &td);
+
 private:
     void BuildInterp();
     // strike to implied vol marks
@@ -56,7 +61,7 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     double T = expiryDate - (latestTime / 1000);
 
     // std::cout << latestTime << std::endl;
-    // std::cout << T << std::endl;
+    std::cout << T << std::endl;
 
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
@@ -107,12 +112,12 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     const double& v_qd25 = ivVector[3];
     const double& v_qd10 = ivVector[4];
 
-    std::cout << "strike vol marks" << std::endl;
-    std::cout << v_qd90 << std::endl
-              << v_qd75 << std::endl
-              << atmvol << std::endl
-              << v_qd25 << std::endl
-              << v_qd10 << std::endl;
+    // std::cout << "strike vol marks" << std::endl;
+    // std::cout << v_qd90 << std::endl
+    //           << v_qd75 << std::endl
+    //           << atmvol << std::endl
+    //           << v_qd25 << std::endl
+    //           << v_qd10 << std::endl;
 
     double bf10 = (v_qd10 + v_qd90)/2 - atmvol;
     double rr10 = v_qd10 - v_qd90;
@@ -120,20 +125,26 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     double rr25 = v_qd25 - v_qd75;
 
     std::cout << "delta marks" << std::endl;
-    std::cout << bf10 << std::endl
-              << rr10 << std::endl
-              << bf25 << std::endl
-              << rr25 << std::endl;
+    std::cout << "bf10 :" << bf10 << std::endl
+              << "rr10 :" << rr10 << std::endl
+              << "atmvol :" << atmvol << std::endl
+              << "bf25 :" << bf25 << std::endl
+              << "rr25 :" << rr25 << std::endl;
 
     // 2. TODO:
     // setup VectorXd and fit for sse
     // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
 
-    // {
-    //     CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
-    //     for (const auto& kVolPair: strikeImpliedVol){
-    //         csCandidate.Vol(kVolPair.first) - 
-    //     }
+    {
+        CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+        double fx=0.0;
+        for (const auto& kVolPair: strikeImpliedVol){
+            double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
+            fx += err*err;
+        }
+
+        std::cout << "error :" << fx << std::endl;
+    }
         
         
         
