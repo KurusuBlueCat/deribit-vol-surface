@@ -4,6 +4,8 @@
 #include "Msg.h"
 #include "VolSurfBuilder.h"
 #include "CubicSmile.h"
+#include <Eigen/Core>
+#include <LBFGSB.h>
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -22,15 +24,6 @@ int main(int argc, char** argv) {
 
     auto timer_listener = [&volBuilder] (uint64_t now_ms) {
         // fit smile
-        const int n = 5;
-        // Set up parameters
-        LBFGSParam<double> param;
-        param.epsilon = 1e-6;
-        param.max_iterations = 100;
-
-         // Create solver and function object
-        LBFGSSolver<double, LineSearchBracketing> solver(param);
-        
         
         auto smiles = volBuilder.FitSmiles();
         // TODO: stream the smiles and their fitting error to outputFile.csv

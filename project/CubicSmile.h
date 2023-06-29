@@ -10,6 +10,8 @@
 #include <cmath>
 #include <tuple>
 #include <array>
+#include <Eigen/Core>
+#include <LBFGSB.h>
 
 using namespace std;
 
@@ -22,10 +24,7 @@ public:
     CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10); // convert parameters to strikeMarks, then call BuildInterp() to create the cubic spline interpolator
     double Vol(double strike); // interpolate
 
-    //TODO: implement a function that reports the Smile's property to a csv line
-    std::string csvLineReport();
-    //TODO: and this one, with error report
-    std::string csvLineReport(const std::vector<TickData> &td);
+
 
 private:
     void BuildInterp();
@@ -34,6 +33,7 @@ private:
     vector<double> y2; // second derivatives
 };
 
+// not within the class
 tuple<uint64_t, double> getLatestTimeAndPrice(const std::vector<TickData> &volTickerSnap)
 {
     double fwd;
@@ -114,56 +114,34 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     const double& v_qd25 = ivVector[3];
     const double& v_qd10 = ivVector[4];
 
-    // std::cout << "strike vol marks" << std::endl;
-    // std::cout << v_qd90 << std::endl
-    //           << v_qd75 << std::endl
-    //           << atmvol << std::endl
-    //           << v_qd25 << std::endl
-    //           << v_qd10 << std::endl;
 
     double bf10 = (v_qd10 + v_qd90)/2 - atmvol;
     double rr10 = v_qd10 - v_qd90;
     double bf25 = (v_qd25 + v_qd75)/2 - atmvol;
     double rr25 = v_qd25 - v_qd75;
 
-    std::cout << "delta marks" << std::endl;
-    std::cout << "bf10 :" << bf10 << std::endl
-              << "rr10 :" << rr10 << std::endl
-              << "atmvol :" << atmvol << std::endl
-              << "bf25 :" << bf25 << std::endl
-              << "rr25 :" << rr25 << std::endl;
 
     // 2. TODO:
-    // setup VectorXd and fit for sse
-    // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
 
-    {
-        CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
-        double fx=0.0;
-        for (const auto& kVolPair: strikeImpliedVol){
-            double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
-            fx += err*err;
-        }
+    const int n = 5;
+    
+    // Set up parameters
+    LBFGSpp::LBFGSParam<double> param;
+    param.epsilon = 1e-6;
+    param.max_iterations = 100;
 
-        std::cout << "error :" << fx << std::endl;
-    }
-        
-        
-        
-    // }
-    // double sse;
+     // Create solver and function object
+    LLBFGSpp::LBFGSSolver<double> solver(param);
+    smile_MSE fun(n, strikeImpliedVol, fwd, T);
 
-    // int niter = solver.minimize(smileError, x, sse);
+    Eigen::VectorXd x {{atmvol, bf25, rr25, bf10, rr10}}; 
+    double fx;
+    int niter = solver.minimize(fun, x, fx);
 
-    // 3. TODO:
-    // Instantiate a new CubicSmile (may be optimizeable if heap memory can be avoided)
-    CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    // optimized values
+    double atmvolOpt = x[0], bf25Opt = x[1], rr25Opt = x[2], bf10Opt = x[3], rr10Opt = x[4];
 
-    // somehow return CubicSmile using x which will be modified inplace by lbfsg
 
-    // ....
-    // after the fitting, we can return the resulting smile
-    // return CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
     return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
 }
 
@@ -256,11 +234,11 @@ class smile_MSE
 {
     private:
         std::map<double, double> MIV;
-        double n, fwd, T;
-
-        double compute_MSE(const std::map<double, double>& MIV, const VectorXd& x){
+        int n;
+        double fwd, T;
+        double compute_MSE(const std::map<double, double>& MIV, const Eigen::VectorXd& x){
             double fx = 0.0, N = 0;
-            CubicSmile csCandidate(fwd, T, x[0], x[1], x[2], x[3], x[4])
+            CubicSmile csCandidate(fwd, T, x[0], x[1], x[2], x[3], x[4]);
 
             for (const auto& kVolPair: MIV){
                 N++;
@@ -274,17 +252,17 @@ class smile_MSE
 
     public:
 
-        smile_MSE(_n, _MIV, _fwd, _T) : 
+        smile_MSE(int _n, std::map<double, double> _MIV, double _fwd, double _T) : 
         n(_n),
         MIV(_MIV), 
         fwd(_fwd), 
         T(_T) {}
 
-        double operator()(const VectorXd& x, VectorXd& grad)
+        double operator()(const Eigen::VectorXd& x, Eigen::VectorXd& grad)
         {
             double fx = compute_MSE(MIV, x);
-            for (i = 0; i < n; i++){
-                grad[i] = compute_grad(MIV, x, i);
+            for (int i = 0; i < n; i++){
+                // grad[i] = compute_grad(MIV, x, i);
             }
 
             return fx;
