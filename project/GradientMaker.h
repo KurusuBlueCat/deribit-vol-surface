@@ -30,6 +30,9 @@ public:
             grad[i] = (fRight1 - fLeft1)/(2*diff_);
         }
     }
+
+
+    
 };
 
 }

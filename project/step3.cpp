@@ -27,6 +27,8 @@ int main(int argc, char** argv) {
         
         auto smiles = volBuilder.FitSmiles();
         // TODO: stream the smiles and their fitting error to outputFile.csv
+        
+
     };
 
     const auto interval = std::chrono::minutes(60);  // we call timer_listener at 1 minute interval

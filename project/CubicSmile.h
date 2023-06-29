@@ -16,11 +16,12 @@
 
 using namespace std;
 
+
 // CubicSpline interpolated smile, extrapolate flat
 class CubicSmile
 {
 public:
-    static CubicSmile FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &td); // FitSmile creates a Smile by fitting the smile params to the input tick data, it assume the tickData are of the same expiry
+    static FitSmileResult FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &td); // FitSmile creates a Smile by fitting the smile params to the input tick data, it assume the tickData are of the same expiry
     // constructor, given the underlying price and marks, convert them to strike to vol pairs (strikeMarks), and construct cubic smile
     CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10); // convert parameters to strikeMarks, then call BuildInterp() to create the cubic spline interpolator
     double Vol(double strike); // interpolate
@@ -106,7 +107,6 @@ void CubicSmile::BuildInterp()
 
     y2[n - 1] = (un - qn * u[n - 2]) / (qn * y2[n - 2] + 1.0);
 
-    //  std::cout << "y2[" << n-1 << "] = " << y2[n-1] << std::endl;
     for (int i = n - 2; i >= 0; i--)
     {
         y2[i] = y2[i] * y2[i + 1] + u[i];
@@ -143,7 +143,7 @@ class smile_MSE
         std::map<double, double> MIV;
         int n;
         double fwd, T;
-        double compute_MSE(const std::map<double, double>& MIV, const Eigen::VectorXd& x){
+        double computeMSE(const std::map<double, double>& MIV, const Eigen::VectorXd& x){
             double fx = 0.0, N = 0;
             CubicSmile csCandidate(fwd, T, x[0], x[1], x[2], x[3], x[4]);
 
@@ -167,10 +167,18 @@ class smile_MSE
 
         double operator()(const Eigen::VectorXd& x, Eigen::VectorXd& grad)
         {
-            double fx = compute_MSE(MIV, x);
-            for (int i = 0; i < n; i++){
-                // ngrad::FirstCentralDiff numFun(fun, 0.001)
-                // grad[i] = compute_grad(MIV, x, i);
+            double fx = computeMSE(MIV, x);
+            
+            double fLeft1, fRight1;
+            Eigen::VectorXd inputVector = x;
+
+            for(int i=0; i<n; ++i){
+                inputVector[i] += 0.001;
+                fRight1 = computeMSE(MIV, inputVector);
+                inputVector[i] -= 2*0.001;
+                fLeft1 = computeMSE(MIV, inputVector);
+                inputVector[i] += 0.001;
+                grad[i] = (fRight1 - fLeft1)/(2*0.001);
             }
 
             return fx;
@@ -178,7 +186,7 @@ class smile_MSE
         
 };
 
-CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &volTickerSnap)
+FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<TickData> &volTickerSnap)
 {
     // volTickerSnap must only include OTM options
 
@@ -187,10 +195,10 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     auto [latestTime, fwd] = getLatestTimeAndPrice(volTickerSnap);
 
     // - get time to expiry T
-    double T = expiryDate - (latestTime / 1000);
+    double T = (expiryDate - (latestTime / 1000)) < 0 ? 0 : (expiryDate - (latestTime / 1000));
 
     // std::cout << latestTime << std::endl;
-    std::cout << T << std::endl;
+    // std::cout << T << std::endl;
 
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
@@ -231,7 +239,7 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
                 qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
                 ++kVolPair;
             }
-            std::cout << qd << std::endl;
+            // std::cout << qd << std::endl;
             //add IV of first contract that is less than threshold
             ivVector.emplace_back(kVolPair->second);
         }
@@ -266,9 +274,22 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
 
     // optimized values
     double atmvolOpt = x[0], bf25Opt = x[1], rr25Opt = x[2], bf10Opt = x[3], rr10Opt = x[4];
+    
+
+    FitSmileResult res;
+    res.smileError = fx;
+    res.fwd = fwd;
+    res.T = T;
+    res.atmvol = atmvolOpt;
+    res.bf25 = bf25Opt;
+    res.rr25 = rr25Opt;
+    res.bf10 = bf10Opt;
+    res.rr10 = rr10Opt;
+
+    return res;
 
 
-    return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
+    //return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
 }
 
 #endif

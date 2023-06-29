@@ -66,4 +66,15 @@ struct Msg {
     std::vector<TickData> Updates;
 };
 
+struct FitSmileResult {
+    double smileError;
+    double fwd;
+    double T;
+    double atmvol;
+    double bf25;
+    double rr25;
+    double bf10;
+    double rr10;
+};
+
 #endif //QF633_CODE_MSG_H
