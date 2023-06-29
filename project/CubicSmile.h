@@ -137,16 +137,16 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     // setup VectorXd and fit for sse
     // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
 
-    {
-        CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
-        double fx=0.0;
-        for (const auto& kVolPair: strikeImpliedVol){
-            double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
-            fx += err*err;
-        }
+    // {
+    //     CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    //     double fx=0.0;
+    //     for (const auto& kVolPair: strikeImpliedVol){
+    //         double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
+    //         fx += err*err;
+    //     }
 
-        std::cout << "error :" << fx << std::endl;
-    }
+    //     std::cout << "error :" << fx << std::endl;
+    // }
         
         
         
@@ -251,5 +251,46 @@ double CubicSmile::Vol(double strike)
     double d = (b * b * b - b) * h * h / 6.0;
     return a * strikeMarks[i - 1].second + b * strikeMarks[i].second + c * y2[i - 1] + d * y2[i];
     }
+
+class smile_MSE
+{
+    private:
+        std::map<double, double> MIV;
+        double n, fwd, T;
+
+        double compute_MSE(const std::map<double, double>& MIV, const VectorXd& x){
+            double fx = 0.0, N = 0;
+            CubicSmile csCandidate(fwd, T, x[0], x[1], x[2], x[3], x[4])
+
+            for (const auto& kVolPair: MIV){
+                N++;
+                double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
+                fx += err*err;
+            }
+
+            return fx/N;
+        }
+
+
+    public:
+
+        smile_MSE(_n, _MIV, _fwd, _T) : 
+        n(_n),
+        MIV(_MIV), 
+        fwd(_fwd), 
+        T(_T) {}
+
+        double operator()(const VectorXd& x, VectorXd& grad)
+        {
+            double fx = compute_MSE(MIV, x);
+            for (i = 0; i < n; i++){
+                grad[i] = compute_grad(MIV, x, i);
+            }
+
+            return fx;
+        }
+        
+}
+
 
 #endif
