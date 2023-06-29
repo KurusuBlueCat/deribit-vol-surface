@@ -48,6 +48,10 @@ double bsUndisc(OptionType optType, double k, double fwd, double T, double sigma
     return V_0;
 }
 
+double quickDelta(double fwd, double strike, double atmVol, double T){
+    return cnorm(std::log(fwd/strike) / (atmVol * sqrt(T)));
+}
+
 double quickDelta(double fwd, double strike, double stdev){
     return cnorm(std::log(fwd/strike) / stdev);
 }

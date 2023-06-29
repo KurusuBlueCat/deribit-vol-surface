@@ -89,7 +89,7 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     ivVector.reserve(threshVector.size());
     {
         auto kVolPair = strikeImpliedVol.begin();
-        double qd = quickDelta(fwd, kVolPair->first, kVolPair->second);
+        double qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
 
         for (auto threshPtr=threshVector.begin(); threshPtr!=threshVector.end(); ++threshPtr){
             //we can increment through strikeImpliedVol as strike is guaranteed increasing
@@ -97,7 +97,9 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
             while ((kVolPair!=strikeImpliedVol.end()) //while there's still kVolPair in the list
                    && (qd > (*threshPtr)))  //and quick delta is still greater than our threshold
             {
-                qd = quickDelta(fwd, kVolPair->first, kVolPair->second);
+                //use IV of the contract itself. ATMVol does not make too much of a difference
+                //And we are trying to get first estimate, not an exact answer.
+                qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
                 ++kVolPair;
             }
             std::cout << qd << std::endl;
