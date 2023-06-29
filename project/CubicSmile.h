@@ -137,16 +137,16 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
     // setup VectorXd and fit for sse
     // VectorXd x = VectorXd::something(atmvol, bf25, rr25, bf10, rr10);
 
-    // {
-    //     CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
-    //     double fx=0.0;
-    //     for (const auto& kVolPair: strikeImpliedVol){
-    //         double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
-    //         fx += err*err;
-    //     }
+    {
+        CubicSmile csCandidate(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+        double fx=0.0;
+        for (const auto& kVolPair: strikeImpliedVol){
+            double err = csCandidate.Vol(kVolPair.first) - kVolPair.second;
+            fx += err*err;
+        }
 
-    //     std::cout << "error :" << fx << std::endl;
-    // }
+        std::cout << "error :" << fx << std::endl;
+    }
         
         
         
@@ -157,7 +157,7 @@ CubicSmile CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vector<
 
     // 3. TODO:
     // Instantiate a new CubicSmile (may be optimizeable if heap memory can be avoided)
-    // CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
+    CubicSmile(fwd, T, atmvol, bf25, rr25, bf10, rr10);
 
     // somehow return CubicSmile using x which will be modified inplace by lbfsg
 
