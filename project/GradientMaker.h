@@ -33,9 +33,35 @@ public:
         }
         return func(x);
     }
+};
 
+template<class T>
+class FirstForwardDifference
+{
+private:
+    double diff_;
+public:
+    T& func;
 
-    
+    FirstForwardDifference(T& func, double diff) 
+        : func(func),
+          diff_(diff)
+    {}
+
+    double operator()(const Eigen::VectorXd& x, Eigen::VectorXd& grad)
+    {
+        int dim = x.size();
+        double fcenter = func(x);
+        double fRight;
+        Eigen::VectorXd inputVector = x;
+        for(int i=0; i<dim; ++i){
+            inputVector[i] += diff_;
+            fRight = func(inputVector);
+            inputVector[i] -= diff_;
+            grad[i] = (fRight - fcenter)/(diff_);
+        }
+        return fcenter;
+    }
 };
 
 }

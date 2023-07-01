@@ -44,25 +44,31 @@ public:
 };
 
 template<template<class Func> class Diff>
-void testNd(int n){
+void testNd(int n, double tol){
     Eigen::VectorXd x = Eigen::VectorXd::Random(n);
 
     Eigen::VectorXd grad(n);
     Rosenbrock fun(n);
     fun(x, grad);
 
-    Diff numFun(fun, 0.001);
+    Diff numFun(fun, 0.0001);
     Eigen::VectorXd gradNum(n);
     numFun(x, gradNum);
 
     double pctAbsError = ((gradNum - grad).array()/grad.array()).cwiseAbs().mean();
     std::cout << "Pct Error: " << pctAbsError*100 << "%" << std::endl;
-    assert(pctAbsError < 0.0001);
+    assert(pctAbsError < tol);
     std::cout << n << "D rosenbrock passed. 1 Gradient and Error calculation took " << fun.errOnlyCount << " evaluation." << std::endl;
 }
 
 int main(){
+    std::cout << "FirstCentralDiff test" << std::endl;
     for(int i =2; i < 17; i+=2){
-        testNd<ngrad::FirstCentralDiff>(i);
+        testNd<ngrad::FirstCentralDiff>(i, 0.000001);
+    }
+
+    std::cout << "FirstForwardDifference test" << std::endl;
+    for(int i =2; i < 17; i+=2){
+        testNd<ngrad::FirstForwardDifference>(i, 0.01);
     }
 }
