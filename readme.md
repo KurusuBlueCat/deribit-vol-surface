@@ -3,3 +3,5 @@
 Group Member:
 
 - Miti Nopnirapath
+- Lee Chew Peng Caden
+- Lee Hiao Huang Lora
