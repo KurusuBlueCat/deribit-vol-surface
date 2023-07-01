@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCsvFeeder.a CMakeFiles/CsvFeeder.dir/CsvFeeder.cpp.o
+/usr/bin/ranlib libCsvFeeder.a

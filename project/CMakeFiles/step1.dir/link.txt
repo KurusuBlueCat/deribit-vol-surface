@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/step1.dir/step1.cpp.o -o step1  libCsvFeeder.a libMsg.a 

@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/step2.dir/step2.cpp.o -o step2  libCsvFeeder.a libMsg.a libDate.a 

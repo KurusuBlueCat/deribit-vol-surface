@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/step3.dir/step3.cpp.o -o step3  libCsvFeeder.a libMsg.a libDate.a 
