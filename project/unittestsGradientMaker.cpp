@@ -7,10 +7,13 @@ class Rosenbrock
 private:
     int n;
 public:
+    int analyticCount=0;
+    int errOnlyCount=0;
     Rosenbrock(int n_) : n(n_) {}
     double operator()(const Eigen::VectorXd& x, Eigen::VectorXd& grad)
     {
-        std::cout << "Gradient version called" << std::endl;
+        // std::cout << "Gradient version called" << std::endl;
+        ++analyticCount;
         double fx = 0.0;
         for(int i = 0; i < n; i += 2)
         {
@@ -26,7 +29,8 @@ public:
 
     double operator()(const Eigen::VectorXd& x)
     {
-        std::cout << "Non-gradient version called" << std::endl;
+        // std::cout << "Non-gradient version called" << std::endl;
+        ++errOnlyCount;
         double fx = 0.0;
         for(int i = 0; i < n; i += 2)
         {
@@ -39,32 +43,26 @@ public:
     }
 };
 
-int main(){
-    Eigen::VectorXd x(2);
-    x[0] = 0;
-    x[1] = 1;
-    Eigen::VectorXd grad(2);
-    Rosenbrock fun(2);
+template<template<class Func> class Diff>
+void testNd(int n){
+    Eigen::VectorXd x = Eigen::VectorXd::Random(n);
+
+    Eigen::VectorXd grad(n);
+    Rosenbrock fun(n);
     fun(x, grad);
 
-    for (auto v: grad){
-        std::cout << v << " ";
+    Diff numFun(fun, 0.001);
+    Eigen::VectorXd gradNum(n);
+    numFun(x, gradNum);
+
+    double pctAbsError = ((gradNum - grad).array()/grad.array()).cwiseAbs().mean();
+    std::cout << "Pct Error: " << pctAbsError*100 << "%" << std::endl;
+    assert(pctAbsError < 0.0001);
+    std::cout << n << "D rosenbrock passed. 1 Gradient and Error calculation took " << fun.errOnlyCount << " evaluation." << std::endl;
+}
+
+int main(){
+    for(int i =2; i < 17; i+=2){
+        testNd<ngrad::FirstCentralDiff>(i);
     }
-    std::cout << std::endl;
-
-    ngrad::FirstCentralDiff numFun(fun, 0.001);
-
-    Eigen::VectorXd xNum(2);
-    xNum[0] = 0;
-    xNum[1] = 1;
-    Eigen::VectorXd gradNum(2);
-
-    numFun(xNum, gradNum);
-
-    for (auto v: gradNum){
-        std::cout << v << " ";
-    }
-    std::cout << std::endl;
-
-    assert((gradNum - grad).cwiseAbs().sum() < 0.000001);
 }
