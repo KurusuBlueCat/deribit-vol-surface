@@ -31,7 +31,16 @@ struct TickData {
     // TODO: null and 0 might appear here, find a way to handle them
     //this is quoted in 'percentage' IV of 50 is 50% or 0.5
     double getMidIV() const {
-        return (BestBidIV + BestAskIV)/2;
+        return BestBidIV == 0 ? BestAskIV : 
+               BestAskIV == 0 ? BestBidIV : 
+                                (BestBidIV + BestAskIV)/2;
+    }
+
+    double getMidIVNaN() const {
+        if ((BestBidIV == 0) || (BestAskIV) == 0)
+            return 0;
+        else
+            return (BestBidIV + BestAskIV)/2;
     }
 
     double GetStrike() const {
@@ -90,8 +99,10 @@ struct FitSmileResult {
     double rr25;
     double bf10;
     double rr10;
-    uint64_t LastUpdateTimeStamp; //Added by Lora on Sat (Will delete later)
+    int niter;
+    uint64_t LastUpdateTimeStamp;
     datetime_t expiryDate;
+    double fitTimeMS;
 
     static FitSmileResult getInvalid(){
         return {0,0,0,0,0,0,0,0};
