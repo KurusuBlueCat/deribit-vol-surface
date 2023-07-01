@@ -75,10 +75,16 @@ struct FitSmileResult {
     double rr25;
     double bf10;
     double rr10;
+    double LastUpdateTimeStamp; //Added by Lora on Sat (Will delete later)
 
     static FitSmileResult getInvalid(){
         return {0,0,0,0,0,0,0,0};
     }
+};
+
+//Added by Lora (might delete later)
+struct ReadNextMsg {
+    std::string FullTimeStamp;
 };
 
 #endif //QF633_CODE_MSG_H
