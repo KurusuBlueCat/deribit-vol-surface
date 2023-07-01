@@ -240,7 +240,7 @@ CsvFeeder::CsvFeeder(const std::string ticker_filename,
 
     bool success = fileBuffer.readNextMsg(msg_);
 
-    std::cout << msg_.Updates.front() << std::endl;
+    // std::cout << msg_.Updates.front() << std::endl;
 
     if (success) {
         // initialize interval timer now_ms_
