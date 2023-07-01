@@ -42,6 +42,13 @@ struct TickData {
         return std::stod(strikeString);
     }
 
+    std::string getExpiry() const {
+        std::size_t hyphenPos = ContractName.find('-');
+        std::size_t secondHyphenPos = ContractName.find('-', hyphenPos + 1);
+
+        return ContractName.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+    }
+
     OptionType GetOptionType() const {
         return ContractName.back() == 'P' ?  OptionType::Put: OptionType::Call;
     }
