@@ -330,6 +330,8 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     res.rr25 = rr25Opt;
     res.bf10 = bf10Opt;
     res.rr10 = rr10Opt;
+    res.LastUpdateTimeStamp = latestTime;
+    res.expiryDate = expiryDate;
 
     return res;
 

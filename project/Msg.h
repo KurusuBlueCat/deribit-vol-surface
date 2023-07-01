@@ -1,6 +1,7 @@
 #ifndef QF633_CODE_MSG_H
 #define QF633_CODE_MSG_H
 
+#include "Date.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -73,6 +74,13 @@ struct Msg {
     std::vector<TickData> Updates;
 };
 
+// //Added by Lora on Sat
+// std::string Expirydate = getExpiry();
+
+// struct Date_Time{    
+//     std::string Expirydate; 
+// }
+
 struct FitSmileResult {
     double smileError;
     double fwd;
@@ -82,16 +90,12 @@ struct FitSmileResult {
     double rr25;
     double bf10;
     double rr10;
-    double LastUpdateTimeStamp; //Added by Lora on Sat (Will delete later)
+    uint64_t LastUpdateTimeStamp; //Added by Lora on Sat (Will delete later)
+    datetime_t expiryDate;
 
     static FitSmileResult getInvalid(){
         return {0,0,0,0,0,0,0,0};
     }
-};
-
-//Added by Lora (might delete later)
-struct ReadNextMsg {
-    std::string FullTimeStamp;
 };
 
 #endif //QF633_CODE_MSG_H

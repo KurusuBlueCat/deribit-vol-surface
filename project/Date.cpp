@@ -18,7 +18,7 @@ bool operator<(const datetime_t& d1, const datetime_t& d2)
 
 std::ostream& operator<<(std::ostream& os, const datetime_t& d)
 {
-  os << d.year << " " << d.month << " " << d.day << std::endl;
+  os << (d.year + 1900) << "-" << (d.month + 1) << "-" << d.day << std::endl;
   return os;
 }
 
