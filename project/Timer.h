@@ -26,7 +26,6 @@ public:
     {}
 
     ~Timer() {
-        std::cout << static_cast<double>(start);
         ctx.timings[name] = static_cast<double>(std::clock() - start) * 1000 / static_cast<double>(CLOCKS_PER_SEC);
     }
 };
