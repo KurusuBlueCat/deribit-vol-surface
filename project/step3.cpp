@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
 
     VolSurfBuilder<CubicSmile> volBuilder;
     auto feeder_listener = [&volBuilder] (const Msg& msg) {
-        if (msg.isSet) {
+        {
             volBuilder.Process(msg);
         }
     };

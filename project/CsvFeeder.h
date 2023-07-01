@@ -8,6 +8,22 @@
 
 #include "Msg.h"
 
+class CsvFileBuffer {
+private:
+    std::ifstream& file;
+    std::vector<std::string> latestTokens;
+    u_int64_t latestTime;
+    bool eof_=false;
+    void loadTokens(const std::string& row, std::vector<std::string>& tokens_vector);
+    void emplaceToMsg(Msg& msg, const std::vector<std::string>& tokens_vector);
+public:
+    bool eof(){
+        return eof_;
+    }
+    bool readNextMsg(Msg& msg);
+    CsvFileBuffer(std::ifstream& file);
+};
+
 class CsvFeeder {
 public:
     using FeedListener = std::function<void(const Msg& msg)>;
@@ -23,6 +39,7 @@ private:
     FeedListener feed_listener_;
     const std::chrono::milliseconds interval_;
     TimerListener timer_listener_;
+    CsvFileBuffer fileBuffer;
 
     uint64_t now_ms_{};
     Msg msg_;

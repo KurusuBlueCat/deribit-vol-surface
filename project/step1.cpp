@@ -12,10 +12,10 @@ int main(int argc, char** argv) {
     const char* ticker_filename = argv[1];
 
     auto feeder_listener = [&] (const Msg& msg) {
-        if (msg.isSet) {
-            if (msg.isSnap) {
-                std::cout << msg.timestamp << ", isSnap = " << msg.isSnap << ", numUpdates = " << msg.Updates.size() << std::endl;
-            }
+        //this only print information if msg is a snap
+        if (msg.isSnap) //comment this line to print everything 
+        {
+            std::cout << msg.timestamp << ", isSnap = " << msg.isSnap << ", numUpdates = " << msg.Updates.size() << std::endl;
         }
     };
 
