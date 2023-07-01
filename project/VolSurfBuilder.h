@@ -174,6 +174,7 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
         // TODO (Step 3): we need to measure the fitting error here
         std::cout << "Expiry: " << iter->first << std::endl;
         std::cout << "Contract Count: " << (iter->second).size() << std::endl;
+        std::cout << "No. of Contract to fit to: " << sm.contractCount << std::endl;
         std::cout << "MSE: " << sm.smileError << std::endl;
         std::cout << "fwd: " << sm.fwd << "; ";
         std::cout << "T: " << sm.T << "; ";

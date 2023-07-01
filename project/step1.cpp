@@ -11,7 +11,10 @@ int main(int argc, char** argv) {
     }
     const char* ticker_filename = argv[1];
 
+    int n=0;
+
     auto feeder_listener = [&] (const Msg& msg) {
+        ++n;
         //this only print information if msg is a snap
         if (msg.isSnap) //comment this line to print everything 
         {
@@ -21,6 +24,7 @@ int main(int argc, char** argv) {
 
     auto timer_listener = [&] (uint64_t now_ms) {
         std::cout << "timer_listener called: " << now_ms << std::endl;
+        std::cout << "Line read: " << n << std::endl;
     };
 
     const auto interval = std::chrono::minutes(1);  // we call timer_listener at 1 minute interval

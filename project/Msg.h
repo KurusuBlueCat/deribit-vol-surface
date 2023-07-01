@@ -135,6 +135,7 @@ struct FitSmileResult {
     int niter;
     uint64_t LastUpdateTimeStamp;
     datetime_t expiryDate;
+    int contractCount;
     double fitTimeMS;
 
     static FitSmileResult getInvalid(){

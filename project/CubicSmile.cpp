@@ -207,13 +207,18 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
         // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
     }
 
+    int contractCount = 0;
     for (auto& kIVWeight: strikeIVWeight){
         if (quickDelta(fwd, kIVWeight.first, atmvol, T) > 0.95)
             kIVWeight.second.second = 0; //ignore contracts with qd > 0.95
         else if (quickDelta(fwd, kIVWeight.first, atmvol, T) < 0.05)
             kIVWeight.second.second = 0; //ignore contracts with qd < 0.05
+        else {
+            ++contractCount;
+        }
     }
  
+    std::cout << contractCount << std::endl;
 
     // 1. TODO:
     // We estimate 5 param using 5 closest iv to a given delta
@@ -239,7 +244,12 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     Eigen::VectorXd x {{atmvol, 0.01, -0.14, 0.1, -0.2}}; //heuristic estimates
     double fx;
 
-    int niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
+    int niter;
+    try{
+    niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
+    } catch (std::runtime_error) {
+        return FitSmileResult::getInvalid();
+    }
 
     // for (const auto& v : strikeIVWeight){
     //     std::cout << v.first << " " << std::get<0>(v.second) << std::endl;
@@ -270,7 +280,7 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     // res.expiryDate = expiryDate;
     //we can pass the above directly back to be instantiated by the previous stack
 
-    return {fx, fwd, T, x[0], x[1], x[2], x[3], x[4], niter, latestTime, expiryDate};
+    return {fx, fwd, T, x[0], x[1], x[2], x[3], x[4], niter, latestTime, expiryDate, contractCount};
 
     //return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
 }
