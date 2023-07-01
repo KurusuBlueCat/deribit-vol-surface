@@ -151,13 +151,13 @@ const Eigen::VectorXd ub {{inf, inf, inf, inf, inf}};
 class smile_MSE
 {
     private:
-        std::map<double, std::tuple<double, double>> MIV;
+        std::map<double, std::pair<double, double>> MIV;
         double fwd, T;
         bool print;
 
     public:
 
-        smile_MSE(std::map<double, std::tuple<double, double>> _MIV, double _fwd, double _T, bool print=false) 
+        smile_MSE(std::map<double, std::pair<double, double>> _MIV, double _fwd, double _T, bool print=false) 
             : MIV(_MIV), 
               fwd(_fwd), 
               T(_T),
@@ -170,13 +170,20 @@ class smile_MSE
             CubicSmile csCandidate(fwd, T, x[0], x[1], x[2], x[3], x[4]);
 
             for (const auto& kVolPair: MIV){
-                N++;
                 if (print){
                     std::cout << "Strike: " << kVolPair.first
                               << " Result: " << csCandidate.Vol(kVolPair.first)
-                              << " Target: " << std::get<0>(kVolPair.second) << std::endl;
+                              << " Target: " << kVolPair.second.first 
+                              << " Weight: " << kVolPair.second.second
+                              << std::endl;
                 }
-                double err = csCandidate.Vol(kVolPair.first) - std::get<0>(kVolPair.second);
+
+                if (kVolPair.second.second == 0) //skip unweighted samples
+                    continue;
+
+                ++N;
+                double err = csCandidate.Vol(kVolPair.first) - kVolPair.second.first;
+                err *= kVolPair.second.second; //weighted error
                 fx += err*err;
             }
 
@@ -195,6 +202,9 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     // - get time to expiry T
     double T = (expiryDate - (latestTime / 1000)) < 0 ? 0 : (expiryDate - (latestTime / 1000));
 
+    if (T == 0)
+        return FitSmileResult::getInvalid();
+
     // std::cout << latestTime << std::endl;
     // std::cout << T << std::endl;
 
@@ -204,11 +214,11 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     //map of strike to OTM 
     //This is guaranteed ascending ordered by strike
     //This is great, because we can use the ordered property later
-    std::map<double, std::tuple<double, double>> strikeIVWeight;
+    std::map<double, std::pair<double, double>> strikeIVWeight;
 
     double atmvol;
 
-    for (auto &td : volTickerSnap)
+    for (const auto &td : volTickerSnap)
     {
         
         if (td.isOTM(fwd))  //Only keep OTM option
@@ -217,9 +227,16 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
             if (strike < fwd) //use the first OTM lower than strike as "ATM"
                 atmvol = td.getMidIV();
 
-            strikeIVWeight[td.GetStrike()] = {td.getMidIV(), 0};
+            strikeIVWeight[td.GetStrike()] = {td.getMidIV(), 1};
         }
         // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
+    }
+
+    for (auto& kIVWeight: strikeIVWeight){
+        if (quickDelta(fwd, kIVWeight.first, atmvol, T) > 0.95)
+            kIVWeight.second.second = 0; //ignore contracts with qd > 0.95
+        else if (quickDelta(fwd, kIVWeight.first, atmvol, T) < 0.05)
+            kIVWeight.second.second = 0; //ignore contracts with qd < 0.05
     }
 
 
@@ -275,7 +292,7 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     // 2. TODO: 
     // Set up parameters
     LBFGSpp::LBFGSBParam<double> param;
-    param.epsilon = 1e-8;
+    param.epsilon = 1e-6;
     param.max_iterations = 100;
 
      // Create solver and function object
@@ -289,9 +306,9 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
 
     int niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
 
-    for (const auto& v : strikeIVWeight){
-        std::cout << v.first << " " << std::get<0>(v.second) << std::endl;
-    }
+    // for (const auto& v : strikeIVWeight){
+    //     std::cout << v.first << " " << std::get<0>(v.second) << std::endl;
+    // }
 
     funWPrint(x);
 
