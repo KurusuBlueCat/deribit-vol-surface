@@ -75,6 +75,10 @@ struct FitSmileResult {
     double rr25;
     double bf10;
     double rr10;
+
+    static FitSmileResult getInvalid(){
+        return {0,0,0,0,0,0,0,0};
+    }
 };
 
 #endif //QF633_CODE_MSG_H
