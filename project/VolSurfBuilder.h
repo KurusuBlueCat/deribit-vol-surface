@@ -1,10 +1,12 @@
 #ifndef QF633_CODE_VOLSURFBUILDER_H
 #define QF633_CODE_VOLSURFBUILDER_H
 
-#include <map>
 #include "Msg.h"
 #include "Date.h"
+#include "Timer.h"
+#include <sstream>
 #include <string>
+#include <map>
 
 template<class Smile>
 class VolSurfBuilder {
@@ -131,31 +133,42 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
     // TODO (Step 3): group the tickers in the current market snapshot by expiry date, and construct tickersByExpiry
     // ...
     for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
-        std::string ticker_name = (tickIter->second).ContractName;
-        std::size_t hyphenPos = ticker_name.find('-');
-        std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
-
-        std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
-        datetime_t expiryDateTime = expiry;
-        tickersByExpiry[expiryDateTime].push_back(tickIter->second);
+        tickersByExpiry[(datetime_t)(tickIter->second.getExpiry())].push_back(tickIter->second);
     }
 
     std::map<datetime_t, FitSmileResult> res{};
+
+    timer::TimingContext ctx;
+
     // then create Smile instance for each expiry by calling FitSmile() of the Smile
     for (auto iter = tickersByExpiry.begin(); iter != tickersByExpiry.end(); iter++) {
         if (iter->second.size() < 10) continue; //skip strike with low no of data
 
-        auto sm = Smile::FitSmile(iter->first, iter->second);  // TODO: you need to implement FitSmile function in CubicSmile
+        FitSmileResult sm;
+        std::string expiry;
+        std::stringstream s;
+        s << (iter->first);
+        expiry = s.str();
+        {
+            timer::Timer timerFitSmile(ctx, expiry);
+
+            sm = Smile::FitSmile(iter->first, iter->second);  // TODO: you need to implement FitSmile function in CubicSmile
+        }
+
+
+        sm.fitTimeMS = ctx.timings[expiry];
+
         double fittingError = 0;
         // TODO (Step 3): we need to measure the fitting error here
-        std::cout << "MSE: " << sm .smileError << std::endl;
-        std::cout << "fwd: " << sm .fwd << "; ";
-        std::cout << "T: " << sm .T << "; ";
-        std::cout << "atmvol: " << sm .atmvol << "; ";
-        std::cout << "bf25: " << sm .bf25 << "; ";
-        std::cout << "rr25: " << sm .rr25 << "; ";
-        std::cout << "bf10: " << sm .bf10 << "; ";
-        std::cout << "rr10: " << sm .rr10 << "; " << std::endl;
+        std::cout << "MSE: " << sm.smileError << std::endl;
+        std::cout << "fwd: " << sm.fwd << "; ";
+        std::cout << "T: " << sm.T << "; ";
+        std::cout << "atmvol: " << sm.atmvol << "; ";
+        std::cout << "bf25: " << sm.bf25 << "; ";
+        std::cout << "rr25: " << sm.rr25 << "; ";
+        std::cout << "bf10: " << sm.bf10 << "; ";
+        std::cout << "rr10: " << sm.rr10 << "; ";
+        std::cout << "Time elapsed (ms): " << sm.fitTimeMS << ";" << std::endl;
         std::cout << "==================================" << std::endl;
         //res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));
         res.insert(std::pair<datetime_t, FitSmileResult >(iter->first, sm));
