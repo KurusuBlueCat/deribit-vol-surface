@@ -10,7 +10,7 @@ add_library(Date STATIC Date.cpp)
 
 add_executable(step1 step1.cpp)
 
-target_link_libraries(step1 CsvFeeder Msg Date)
+target_link_libraries(step1 CsvFeeder Msg)
 
 add_executable(step2 step2.cpp)
 
