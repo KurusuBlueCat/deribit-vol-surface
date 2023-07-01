@@ -170,16 +170,18 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
 
         double fittingError = 0;
         // TODO (Step 3): we need to measure the fitting error here
-        std::cout << iter->first << std::endl;
-        std::cout << (iter->second).size() << std::endl;
-        std::cout << "MSE: " << sm .smileError << std::endl;
-        std::cout << "fwd: " << sm .fwd << "; ";
-        std::cout << "T: " << sm .T << "; ";
-        std::cout << "atmvol: " << sm .atmvol << "; ";
-        std::cout << "bf25: " << sm .bf25 << "; ";
-        std::cout << "rr25: " << sm .rr25 << "; ";
-        std::cout << "bf10: " << sm .bf10 << "; ";
-        std::cout << "rr10: " << sm .rr10 << "; " << std::endl;
+        std::cout << "Expiry: " << iter->first << std::endl;
+        std::cout << "Contract Count: " << (iter->second).size() << std::endl;
+        std::cout << "MSE: " << sm.smileError << std::endl;
+        std::cout << "fwd: " << sm.fwd << "; ";
+        std::cout << "T: " << sm.T << "; ";
+        std::cout << "atmvol: " << sm.atmvol << "; ";
+        std::cout << "bf25: " << sm.bf25 << "; ";
+        std::cout << "rr25: " << sm.rr25 << "; ";
+        std::cout << "bf10: " << sm.bf10 << "; ";
+        std::cout << "rr10: " << sm.rr10 << "; " << std::endl;
+        std::cout << "niter: " << sm.niter << "; " << std::endl;
+        std::cout << "fitTimeMS: " << sm.fitTimeMS << "; " << std::endl;
         std::cout << "==================================" << std::endl;
         //res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));
         res.insert(std::pair<datetime_t, FitSmileResult >(iter->first, sm));
