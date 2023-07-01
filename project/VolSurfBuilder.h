@@ -28,7 +28,7 @@ void VolSurfBuilder<Smile>::Process(const Msg& msg){
 
     //if snap, just apply everything
     if (msg.isSnap){
-        std::cout << "Snapped" << std::endl;
+        // std::cout << "Snapped" << std::endl;
 
         currentSurfaceRaw.clear();
 
