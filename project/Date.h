@@ -19,8 +19,8 @@ public:
     datetime_t(uint64_t unix_epoch_sec) {
         const time_t second = unix_epoch_sec;
         auto tm = std::gmtime(&second);
-        year = tm->tm_year;
-        month = tm->tm_mon;
+        year = tm->tm_year + 1900;
+        month = tm->tm_mon + 1;
         day = tm->tm_mday;
         hour = tm->tm_hour;
         min = tm->tm_min;
@@ -33,10 +33,11 @@ public:
         std::istringstream ss(dateString);
         ss >> std::get_time(tm, "%d%b%y");
 
-        year = tm->tm_year;
-        month = tm->tm_mon;
+        year = tm->tm_year + 1900;
+        month = tm->tm_mon + 1;
         day = tm->tm_mday;
-        hour = tm->tm_hour;
+        hour = 8;
+        //hour = tm->tm_hour;
         min = tm->tm_min;
         sec = tm->tm_sec;
 

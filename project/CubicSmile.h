@@ -211,9 +211,6 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
 
-    //map of strike to OTM 
-    //This is guaranteed ascending ordered by strike
-    //This is great, because we can use the ordered property later
     std::map<double, std::pair<double, double>> strikeIVWeight;
 
     double atmvol;
@@ -233,61 +230,18 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     }
 
     for (auto& kIVWeight: strikeIVWeight){
-        if (quickDelta(fwd, kIVWeight.first, atmvol, T) > 0.95)
+        if (quickDelta(fwd, kIVWeight.first, atmvol, T) > 0.99)
             kIVWeight.second.second = 0; //ignore contracts with qd > 0.95
-        else if (quickDelta(fwd, kIVWeight.first, atmvol, T) < 0.05)
+        else if (quickDelta(fwd, kIVWeight.first, atmvol, T) < 0.01)
             kIVWeight.second.second = 0; //ignore contracts with qd < 0.05
     }
-
+ 
 
     // 1. TODO:
     // We estimate 5 param using 5 closest iv to a given delta
     //this does not seem to be worthwhile
 
-    // std::vector<double> threshVector = {0.9, 0.75, 0.5, 0.25, 0.1};
 
-    // std::vector<double> ivVector;
-    // ivVector.reserve(threshVector.size());
-    // {
-    //     auto kVolPair = strikeIVWeight.begin();
-    //     double qd = quickDelta(fwd, kVolPair->first, kVolPair->second.first, T);
-
-    //     for (auto threshPtr=threshVector.begin(); threshPtr!=threshVector.end(); ++threshPtr){
-    //         //we can increment through strikeImpliedVol as strike is guaranteed increasing
-    //         //therefore, qd is guaranteed decreasing
-    //         while ((kVolPair!=strikeIVWeight.end()) //while there's still kVolPair in the list
-    //                && (qd > (*threshPtr)))  //and quick delta is still greater than our threshold
-    //         {
-    //             //use IV of the contract itself. ATMVol does not make too much of a difference
-    //             //And we are trying to get first estimate, not an exact answer.
-    //             qd = quickDelta(fwd, kVolPair->first, kVolPair->second.first, T);
-    //             ++kVolPair;
-    //         }
-    //         // std::cout << qd << std::endl;
-    //         //add IV of first contract that is less than threshold
-    //         ivVector.emplace_back(kVolPair->second.first);
-    //     }
-    // }
-
-    // const double& v_qd90 = ivVector[0];
-    // const double& v_qd75 = ivVector[1];
-    // const double& v_qd25 = ivVector[3];
-    // const double& v_qd10 = ivVector[4];
-
-    // for (auto iv: ivVector){
-    //     std::cout << iv << std::endl;
-    // }
-
-
-    // double bf10 = (v_qd10 + v_qd90)/2 - atmvol;
-    // double rr10 = v_qd10 - v_qd90;
-    // double bf25 = (v_qd25 + v_qd75)/2 - atmvol;
-    // double rr25 = v_qd25 - v_qd75;
-
-    // double bf10 = 0;
-    // double rr10 = 0;
-    // double bf25 = 0;
-    // double rr25 = 0;
 
     // 2. TODO: 
     // Set up parameters

@@ -133,7 +133,26 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
     // TODO (Step 3): group the tickers in the current market snapshot by expiry date, and construct tickersByExpiry
     // ...
     for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
-        tickersByExpiry[(datetime_t)(tickIter->second.getExpiry())].push_back(tickIter->second);
+        if (tickIter->second.BestBidPrice > 0 && tickIter->second.BestAskPrice > 0) {
+            std::string ticker_name = (tickIter->second).ContractName;
+            std::size_t hyphenPos = ticker_name.find('-');
+            std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+
+            std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+            datetime_t expiryDateTime = expiry;
+
+            tickersByExpiry[expiryDateTime].push_back(tickIter->second);
+        }
+        // std::string ticker_name = (tickIter->second).ContractName;
+        // std::size_t hyphenPos = ticker_name.find('-');
+        // std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+
+        // std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+        // datetime_t expiryDateTime = expiry;
+
+        // tickersByExpiry[expiryDateTime].push_back(tickIter->second);
+
+
     }
 
     std::map<datetime_t, FitSmileResult> res{};
@@ -160,16 +179,16 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
 
         double fittingError = 0;
         // TODO (Step 3): we need to measure the fitting error here
-        std::cout << "MSE: " << sm.smileError << std::endl;
-        std::cout << "fwd: " << sm.fwd << "; ";
-        std::cout << "T: " << sm.T << "; ";
-        std::cout << "atmvol: " << sm.atmvol << "; ";
-        std::cout << "bf25: " << sm.bf25 << "; ";
-        std::cout << "rr25: " << sm.rr25 << "; ";
-        std::cout << "bf10: " << sm.bf10 << "; ";
-        std::cout << "rr10: " << sm.rr10 << "; ";
-        std::cout << "niter: " << sm.niter << "; ";
-        std::cout << "Time elapsed (ms): " << sm.fitTimeMS << ";" << std::endl;
+        std::cout << iter->first << std::endl;
+        std::cout << (iter->second).size() << std::endl;
+        std::cout << "MSE: " << sm .smileError << std::endl;
+        std::cout << "fwd: " << sm .fwd << "; ";
+        std::cout << "T: " << sm .T << "; ";
+        std::cout << "atmvol: " << sm .atmvol << "; ";
+        std::cout << "bf25: " << sm .bf25 << "; ";
+        std::cout << "rr25: " << sm .rr25 << "; ";
+        std::cout << "bf10: " << sm .bf10 << "; ";
+        std::cout << "rr10: " << sm .rr10 << "; " << std::endl;
         std::cout << "==================================" << std::endl;
         //res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));
         res.insert(std::pair<datetime_t, FitSmileResult >(iter->first, sm));
