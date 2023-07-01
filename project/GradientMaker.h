@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Eigen/Core>
 #include <LBFGS.h>
 
@@ -16,7 +18,7 @@ public:
           diff_(diff)
     {}
 
-    void operator()(const Eigen::VectorXd& x, Eigen::VectorXd& grad)
+    double operator()(const Eigen::VectorXd& x, Eigen::VectorXd& grad)
     {
         int dim = x.size();
         double fLeft1, fRight1;
@@ -29,6 +31,7 @@ public:
             inputVector[i] += diff_;
             grad[i] = (fRight1 - fLeft1)/(2*diff_);
         }
+        return func(x);
     }
 
 
