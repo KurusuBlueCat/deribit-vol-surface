@@ -221,18 +221,19 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
         if (td.isOTM(fwd))  //Only keep OTM option
         {
             double strike = td.GetStrike();
+            
             if (strike < fwd) //use the first OTM lower than strike as "ATM"
-                atmvol = td.getMidIV();
+                atmvol = td.getMidIVNaN();
 
-            strikeIVWeight[td.GetStrike()] = {td.getMidIV(), 1};
+            strikeIVWeight[td.GetStrike()] = {td.getMidIVNaN(), 1 ? td.getMidIVNaN() >0 : 0};
         }
         // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
     }
 
     for (auto& kIVWeight: strikeIVWeight){
-        if (quickDelta(fwd, kIVWeight.first, atmvol, T) > 0.99)
+        if (quickDelta(fwd, kIVWeight.first, atmvol, T) > 0.95)
             kIVWeight.second.second = 0; //ignore contracts with qd > 0.95
-        else if (quickDelta(fwd, kIVWeight.first, atmvol, T) < 0.01)
+        else if (quickDelta(fwd, kIVWeight.first, atmvol, T) < 0.05)
             kIVWeight.second.second = 0; //ignore contracts with qd < 0.05
     }
  

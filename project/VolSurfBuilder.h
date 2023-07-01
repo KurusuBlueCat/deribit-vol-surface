@@ -133,24 +133,15 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
     // TODO (Step 3): group the tickers in the current market snapshot by expiry date, and construct tickersByExpiry
     // ...
     for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
-        if (tickIter->second.BestBidPrice > 0 && tickIter->second.BestAskPrice > 0) {
-            std::string ticker_name = (tickIter->second).ContractName;
-            std::size_t hyphenPos = ticker_name.find('-');
-            std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
 
-            std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
-            datetime_t expiryDateTime = expiry;
+        std::string ticker_name = (tickIter->second).ContractName;
+        std::size_t hyphenPos = ticker_name.find('-');
+        std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
 
-            tickersByExpiry[expiryDateTime].push_back(tickIter->second);
-        }
-        // std::string ticker_name = (tickIter->second).ContractName;
-        // std::size_t hyphenPos = ticker_name.find('-');
-        // std::size_t secondHyphenPos = ticker_name.find('-', hyphenPos + 1);
+        std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
+        datetime_t expiryDateTime = expiry;
 
-        // std::string expiry = ticker_name.substr(hyphenPos + 1, secondHyphenPos - hyphenPos - 1);
-        // datetime_t expiryDateTime = expiry;
-
-        // tickersByExpiry[expiryDateTime].push_back(tickIter->second);
+        tickersByExpiry[expiryDateTime].push_back(tickIter->second);
 
 
     }
