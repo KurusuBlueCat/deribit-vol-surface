@@ -168,6 +168,7 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
         std::cout << "rr25: " << sm.rr25 << "; ";
         std::cout << "bf10: " << sm.bf10 << "; ";
         std::cout << "rr10: " << sm.rr10 << "; ";
+        std::cout << "niter: " << sm.niter << "; ";
         std::cout << "Time elapsed (ms): " << sm.fitTimeMS << ";" << std::endl;
         std::cout << "==================================" << std::endl;
         //res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));

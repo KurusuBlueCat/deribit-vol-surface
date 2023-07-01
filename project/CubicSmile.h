@@ -242,35 +242,35 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
 
     // 1. TODO:
     // We estimate 5 param using 5 closest iv to a given delta
+    //this does not seem to be worthwhile
 
     // std::vector<double> threshVector = {0.9, 0.75, 0.5, 0.25, 0.1};
 
     // std::vector<double> ivVector;
     // ivVector.reserve(threshVector.size());
     // {
-    //     auto kVolPair = strikeImpliedVol.begin();
-    //     double qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
+    //     auto kVolPair = strikeIVWeight.begin();
+    //     double qd = quickDelta(fwd, kVolPair->first, kVolPair->second.first, T);
 
     //     for (auto threshPtr=threshVector.begin(); threshPtr!=threshVector.end(); ++threshPtr){
     //         //we can increment through strikeImpliedVol as strike is guaranteed increasing
     //         //therefore, qd is guaranteed decreasing
-    //         while ((kVolPair!=strikeImpliedVol.end()) //while there's still kVolPair in the list
+    //         while ((kVolPair!=strikeIVWeight.end()) //while there's still kVolPair in the list
     //                && (qd > (*threshPtr)))  //and quick delta is still greater than our threshold
     //         {
     //             //use IV of the contract itself. ATMVol does not make too much of a difference
     //             //And we are trying to get first estimate, not an exact answer.
-    //             qd = quickDelta(fwd, kVolPair->first, kVolPair->second, T);
+    //             qd = quickDelta(fwd, kVolPair->first, kVolPair->second.first, T);
     //             ++kVolPair;
     //         }
     //         // std::cout << qd << std::endl;
     //         //add IV of first contract that is less than threshold
-    //         ivVector.emplace_back(kVolPair->second);
+    //         ivVector.emplace_back(kVolPair->second.first);
     //     }
     // }
 
     // const double& v_qd90 = ivVector[0];
     // const double& v_qd75 = ivVector[1];
-    // const double& atmvol = ivVector[2];
     // const double& v_qd25 = ivVector[3];
     // const double& v_qd10 = ivVector[4];
 
@@ -298,10 +298,13 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
      // Create solver and function object
     LBFGSpp::LBFGSBSolver<double> solver(param);
     smile_MSE fun(strikeIVWeight, fwd, T);
-    smile_MSE funWPrint(strikeIVWeight, fwd, T, true);
-    ngrad::FirstCentralDiff funWithGrad(fun, 0.0001);
+    // smile_MSE funWPrint(strikeIVWeight, fwd, T, true);
+    // ngrad::FirstCentralDiff funWithGrad(fun, 0.00001);
+    ngrad::FirstForwardDifference funWithGrad(fun, 0.00001);
 
-    Eigen::VectorXd x {{atmvol, 0, 0, 0, 0}}; //we actually don't need to estimate!
+    // std::cout << bf25 << " " << rr25 << " " << bf10 << " " << rr10 << std::endl;
+
+    Eigen::VectorXd x {{atmvol, 0.01, -0.14, 0.1, -0.2}}; //heuristic estimates
     double fx;
 
     int niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
@@ -310,28 +313,29 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     //     std::cout << v.first << " " << std::get<0>(v.second) << std::endl;
     // }
 
-    funWPrint(x);
+    // funWPrint(x);
 
     // optimized values
     double atmvolOpt = x[0], bf25Opt = x[1], rr25Opt = x[2], bf10Opt = x[3], rr10Opt = x[4];
 
-    std::cout << "qd90 " << (atmvolOpt + bf10Opt - rr10Opt / 2.0) << std::endl
-              << "qd75 " << (atmvolOpt + bf25Opt - rr25Opt / 2.0) << std::endl
-              << "atmvol " << atmvolOpt << std::endl
-              << "qd25 " << (atmvolOpt + bf25Opt + rr25Opt / 2.0) << std::endl
-              << "qd10 " << (atmvolOpt + bf10Opt + rr10Opt / 2.0) << std::endl;
+    // std::cout << "qd90 " << (atmvolOpt + bf10Opt - rr10Opt / 2.0) << std::endl
+    //           << "qd75 " << (atmvolOpt + bf25Opt - rr25Opt / 2.0) << std::endl
+    //           << "atmvol " << atmvolOpt << std::endl
+    //           << "qd25 " << (atmvolOpt + bf25Opt + rr25Opt / 2.0) << std::endl
+    //           << "qd10 " << (atmvolOpt + bf10Opt + rr10Opt / 2.0) << std::endl;
 
-    FitSmileResult res;
-    res.smileError = fx;
-    res.fwd = fwd;
-    res.T = T;
-    res.atmvol = atmvolOpt;
-    res.bf25 = bf25Opt;
-    res.rr25 = rr25Opt;
-    res.bf10 = bf10Opt;
-    res.rr10 = rr10Opt;
+    // FitSmileResult res;
+    // res.smileError = fx;
+    // res.fwd = fwd;
+    // res.T = T;
+    // res.atmvol = x[0];
+    // res.bf25 = x[1];
+    // res.rr25 = x[2];
+    // res.bf10 = x[3];
+    // res.rr10 = x[4];
+    //we can pass the above directly back to be instantiated by the previous stack
 
-    return res;
+    return {fx, fwd, T, x[0], x[1], x[2], x[3], x[4], niter};
 
     //return {fwd, T, atmvol, bf25, rr25, bf10, rr10};
 }

@@ -91,7 +91,8 @@ struct FitSmileResult {
     double rr25;
     double bf10;
     double rr10;
-    double LastUpdateTimeStamp; //Added by Lora on Sat (Will delete later)
+    int niter;
+    double LastUpdateTimeStamp;
     double fitTimeMS;
 
     static FitSmileResult getInvalid(){
