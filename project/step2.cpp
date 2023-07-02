@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
 
     VolSurfBuilder<CubicSmile> volBuilder;
     auto feeder_listener = [&volBuilder] (const Msg& msg) {
-        if (msg.isSet) {
-            volBuilder.Process(msg);
-        }
+        // if (msg.isSet) {
+        volBuilder.Process(msg);
+        // }
     };
 
     auto timer_listener = [&volBuilder] (uint64_t now_ms) {

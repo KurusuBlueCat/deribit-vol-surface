@@ -8,6 +8,8 @@
 #include <LBFGSB.h>
 #include <sstream>
 
+template class VolSurfBuilder<CubicSmile>;
+
 std::string convertUnixMSToISO8601(uint64_t timestamp) {
     std::time_t time = static_cast<std::time_t>(timestamp / 1000);
     std::tm* dateTime = std::gmtime(&time);
@@ -74,7 +76,7 @@ int main(int argc, char** argv) {
 
     VolSurfBuilder<CubicSmile> volBuilder;
     auto feeder_listener = [&volBuilder] (const Msg& msg) {
-        if (msg.isSet) {
+        {
             volBuilder.Process(msg);
         }
     };

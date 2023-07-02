@@ -7,6 +7,7 @@
 #include <vector>
 
 enum OptionType {Call, Put};
+
 struct TickData {
     std::string ContractName;
     double BestBidPrice;
@@ -26,6 +27,38 @@ struct TickData {
     double LastPrice;
     double OpenInterest;
     uint64_t LastUpdateTimeStamp;
+
+    TickData(const std::string& ContractName,
+             double BestBidPrice,
+             double BestBidAmount,
+             double BestBidIV,
+             double BestAskPrice,
+             double BestAskAmount,
+             double BestAskIV,
+             double MarkPrice,
+             double MarkIV,
+             const std::string& UnderlyingIndex,
+             double UnderlyingPrice,
+             double LastPrice,
+             double OpenInterest,
+             uint64_t LastUpdateTimeStamp)
+        : ContractName(ContractName),
+          BestBidPrice(BestBidPrice),
+          BestBidAmount(BestBidAmount),
+          BestBidIV(BestBidIV),
+          BestAskPrice(BestAskPrice),
+          BestAskAmount(BestAskAmount),
+          BestAskIV(BestAskIV),
+          MarkPrice(MarkPrice),
+          MarkIV(MarkIV),
+          UnderlyingIndex(UnderlyingIndex),
+          UnderlyingPrice(UnderlyingPrice),
+          LastPrice(LastPrice),
+          OpenInterest(OpenInterest),
+          LastUpdateTimeStamp(LastUpdateTimeStamp)
+    {}
+
+    TickData() = default;
     
     // TODO: Interpolate this from price
     // TODO: null and 0 might appear here, find a way to handle them
@@ -79,7 +112,7 @@ struct TickData {
 struct Msg {
     uint64_t timestamp{};
     bool isSnap;
-    bool isSet = false;
+    // bool isSet = false;
     std::vector<TickData> Updates;
 };
 
@@ -102,11 +135,14 @@ struct FitSmileResult {
     int niter;
     uint64_t LastUpdateTimeStamp;
     datetime_t expiryDate;
+    int contractCount;
     double fitTimeMS;
 
     static FitSmileResult getInvalid(){
         return {0,0,0,0,0,0,0,0};
     }
 };
+
+std::ostream& operator<< (std::ostream& os, const TickData& tick);
 
 #endif //QF633_CODE_MSG_H

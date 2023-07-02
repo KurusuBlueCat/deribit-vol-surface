@@ -28,7 +28,7 @@ void VolSurfBuilder<Smile>::Process(const Msg& msg){
 
     //if snap, just apply everything
     if (msg.isSnap){
-        std::cout << "Snapped" << std::endl;
+        // std::cout << "Snapped" << std::endl;
 
         currentSurfaceRaw.clear();
 
@@ -64,7 +64,10 @@ void VolSurfBuilder<Smile>::PrintInfo(){
 
 template<class Smile>
 void VolSurfBuilder<Smile>::PrintInfo(){
-    std::cout << currentSurfaceRaw.size() << std::endl;
+    std::cout << "==============^^^^^^^^^^^^^===============" << std::endl;
+    std::cout << "==============<<PrintInfo>>===============" << std::endl;
+    std::cout << "==============vvvvvvvvvvvvv===============" << std::endl;
+    std::cout << "No. of contracts in memory: " << currentSurfaceRaw.size() << std::endl;
     std::map<datetime_t, std::vector<TickData> > tickersByExpiry{};
     for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
         std::string ticker_name = (tickIter->second).ContractName;
@@ -77,17 +80,14 @@ void VolSurfBuilder<Smile>::PrintInfo(){
 
     }
 
-    std::cout << tickersByExpiry.size() << std::endl;
+    std::cout << "No. of expiry observed: " << tickersByExpiry.size() << std::endl;
 
     for (auto tickIter2=tickersByExpiry.begin(); tickIter2!=tickersByExpiry.end(); ++tickIter2){
         
-        std::cout << (tickIter2->second).size() << std::endl;
         uint64_t LatestUpdateTimeStamp = 0;
         double LatestUnderlyingPrice = 0;
         std::string UIndex;
         datetime_t dateNow; 
-
-        std::cout << "Given strike" << std::endl;
 
         for (auto tickIter3: tickIter2->second){
             if (LatestUpdateTimeStamp < tickIter3.LastUpdateTimeStamp){
@@ -98,9 +98,11 @@ void VolSurfBuilder<Smile>::PrintInfo(){
             }
         }
         dateNow = LatestUpdateTimeStamp/1000;
+        std::cout << std::endl;
         std::cout << (tickIter2->second)[0].UnderlyingIndex << std::endl;
-        std::cout << LatestUpdateTimeStamp << std::endl;
-        std::cout << LatestUnderlyingPrice << std::endl;
+        std::cout << "No. of Option Contracts: " << (tickIter2->second).size() << std::endl;
+        std::cout << "Latest Epoch: " << LatestUpdateTimeStamp << std::endl;
+        std::cout << "Underlying Price: " << LatestUnderlyingPrice << std::endl;
 
         std::cout << "Date Now: ";
         std::cout << dateNow.year << "-";
@@ -120,7 +122,7 @@ void VolSurfBuilder<Smile>::PrintInfo(){
 
         auto dateDiff = (tickIter2->first) - dateNow;
 
-        std::cout << dateDiff << std::endl;
+        std::cout << "Time to expiry (Y): " << dateDiff << std::endl;
           
         }
 } 
@@ -172,6 +174,7 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
         // TODO (Step 3): we need to measure the fitting error here
         std::cout << "Expiry: " << iter->first << std::endl;
         std::cout << "Contract Count: " << (iter->second).size() << std::endl;
+        std::cout << "No. of Contract to fit to: " << sm.contractCount << std::endl;
         std::cout << "MSE: " << sm.smileError << std::endl;
         std::cout << "fwd: " << sm.fwd << "; ";
         std::cout << "T: " << sm.T << "; ";
