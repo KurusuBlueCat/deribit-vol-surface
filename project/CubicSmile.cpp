@@ -202,7 +202,7 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
             if (strike < fwd) //use the first OTM lower than strike as "ATM"
                 atmvol = td.getMidIVNaN();
 
-            strikeIVWeight[td.GetStrike()] = {td.getMidIVNaN(), 1 ? td.getMidIVNaN() >0 : 0};
+            strikeIVWeight[td.GetStrike()] = {td.getMidIVNaN(), (td.getMidIVNaN() >0) ? 1 : 0};
         }
         // std::cout << td.getMidIV() << ": " << td.GetStrike() << std::endl;
     }
