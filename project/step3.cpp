@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip> // for std::put_time and std::setw
 
 #include "CsvFeeder.h"
 #include "Msg.h"
@@ -61,7 +62,6 @@ void csvLineReport(const FitSmileResult& smileResult){
     else {
         std::cout << "Error: Unable to open the file." << std::endl;
     }
-
 }
 
 int main(int argc, char** argv) {
@@ -82,17 +82,14 @@ int main(int argc, char** argv) {
     auto timer_listener = [&volBuilder] (uint64_t now_ms) {
         // fit smile
         
+        // TODO: stream the smiles and their fitting error to outputFile.csv 
         auto smiles = volBuilder.FitSmiles();
+        bool headerPrinted = false;
 
         for (const auto& eachSmile: smiles){
-            csvLineReport(eachSmile.second);
-
+            csvLineReport(eachSmile.second, headerPrinted);
         }
-
-        // TODO: stream the smiles and their fitting error to outputFile.csv
-
-        
-
+            
     };
 
     const auto interval = std::chrono::minutes(60);  // we call timer_listener at 1 minute interval
