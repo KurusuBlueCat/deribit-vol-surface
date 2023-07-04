@@ -90,7 +90,6 @@ int main(int argc, char** argv) {
         
         // TODO: stream the smiles and their fitting error to outputFile.csv 
         auto smiles = volBuilder.FitSmiles();
-        bool headerPrinted = false;
 
         // TODO: stream the smiles and their fitting error to outputFile.csv
         for (const auto& eachSmile: smiles){
