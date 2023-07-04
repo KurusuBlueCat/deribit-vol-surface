@@ -9,10 +9,12 @@
 #include <map>
 #include <cmath>
 #include <tuple>
+#include <string>
 #include <array>
 #include <Eigen/Core>
 #include <LBFGS.h>
 #include <LBFGSB.h>
+#include <fstream>
 
 template class VolSurfBuilder<CubicSmile>;
 
@@ -128,14 +130,16 @@ const Eigen::VectorXd ub {{inf, inf, inf, inf, inf}};
 class smile_MSE
 {
     private:
+        datetime_t Expiry;
         std::map<double, std::pair<double, double>> MIV;
         double fwd, T;
         bool print;
 
     public:
 
-        smile_MSE(std::map<double, std::pair<double, double>> _MIV, double _fwd, double _T, bool print=false) 
-            : MIV(_MIV), 
+        smile_MSE(datetime_t expiryDate, std::map<double, std::pair<double, double>> _MIV, double _fwd, double _T, bool print=false) 
+            : Expiry(expiryDate),
+              MIV(_MIV), 
               fwd(_fwd), 
               T(_T),
               print(print)
@@ -145,14 +149,33 @@ class smile_MSE
         {
             double fx = 0.0, N = 0;
             CubicSmile csCandidate(fwd, T, x[0], x[1], x[2], x[3], x[4]);
+            size_t totalIterations = MIV.size();
+            size_t currentIteration = 0;
+            
+
+
 
             for (const auto& kVolPair: MIV){
                 if (print){
-                    std::cout << "Strike: " << kVolPair.first
-                              << " Result: " << csCandidate.Vol(kVolPair.first)
-                              << " Target: " << kVolPair.second.first 
-                              << " Weight: " << kVolPair.second.second
-                              << std::endl;
+                    std::ofstream outputFile("output_analytics.csv", std::ios::app);   
+                    if (currentIteration == 0){
+                        std::string line = "Expiry, T, Strike, Result, Target, Weight\n";
+                        outputFile << line;
+                    }
+
+                    std::string line = std::to_string(Expiry.year)+"-"+std::to_string(Expiry.month)+"-"+std::to_string(Expiry.day) + ",";
+                    line += std::to_string(T) + ",";
+                    line += std::to_string(kVolPair.first) + ",";
+                    line += std::to_string(csCandidate.Vol(kVolPair.first)) + ",";
+                    line += std::to_string(kVolPair.second.first ) + ",";
+                    line += std::to_string(kVolPair.second.second) + "\n";
+
+                    outputFile << line;
+
+                    ++currentIteration;
+                    bool isLastIteration = (currentIteration == totalIterations);
+                    outputFile.close();
+
                 }
 
                 if (kVolPair.second.second == 0) //skip unweighted samples
@@ -234,8 +257,8 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
 
      // Create solver and function object
     LBFGSpp::LBFGSBSolver<double> solver(param);
-    smile_MSE fun(strikeIVWeight, fwd, T);
-    // smile_MSE funWPrint(strikeIVWeight, fwd, T, true);
+    smile_MSE fun(expiryDate, strikeIVWeight, fwd, T);
+    smile_MSE funWPrint(expiryDate, strikeIVWeight, fwd, T, true);
     // ngrad::FirstCentralDiff funWithGrad(fun, 0.00001);
     ngrad::FirstForwardDifference funWithGrad(fun, 0.00001);
 
@@ -255,29 +278,12 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     //     std::cout << v.first << " " << std::get<0>(v.second) << std::endl;
     // }
 
-    // funWPrint(x);
+    funWPrint(x);
 
     // optimized values
     double atmvolOpt = x[0], bf25Opt = x[1], rr25Opt = x[2], bf10Opt = x[3], rr10Opt = x[4];
 
-    // std::cout << "qd90 " << (atmvolOpt + bf10Opt - rr10Opt / 2.0) << std::endl
-    //           << "qd75 " << (atmvolOpt + bf25Opt - rr25Opt / 2.0) << std::endl
-    //           << "atmvol " << atmvolOpt << std::endl
-    //           << "qd25 " << (atmvolOpt + bf25Opt + rr25Opt / 2.0) << std::endl
-    //           << "qd10 " << (atmvolOpt + bf10Opt + rr10Opt / 2.0) << std::endl;
 
-    // FitSmileResult res;
-    // res.smileError = fx;
-    // res.fwd = fwd;
-    // res.T = T;
-    // res.atmvol = x[0];
-    // res.bf25 = x[1];
-    // res.rr25 = x[2];
-    // res.bf10 = x[3];
-    // res.rr10 = x[4];
-    // res.niter = niter;
-    // res.LastUpdateTimeStamp = latestTime;
-    // res.expiryDate = expiryDate;
     //we can pass the above directly back to be instantiated by the previous stack
 
     return {fx, fwd, T, x[0], x[1], x[2], x[3], x[4], niter, latestTime, expiryDate, contractCount};
