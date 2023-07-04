@@ -20,7 +20,7 @@ public:
         const time_t second = unix_epoch_sec;
         auto tm = std::gmtime(&second);
         year = tm->tm_year + 1900;
-        month = tm->tm_mon + 1;
+        month = tm->tm_mon;
         day = tm->tm_mday;
         hour = tm->tm_hour;
         min = tm->tm_min;
@@ -34,7 +34,7 @@ public:
         ss >> std::get_time(tm, "%d%b%y");
 
         year = tm->tm_year + 1900;
-        month = tm->tm_mon + 1;
+        month = tm->tm_mon;
         day = tm->tm_mday;
         hour = 8;
         //hour = tm->tm_hour;

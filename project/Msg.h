@@ -138,8 +138,8 @@ struct FitSmileResult {
     int contractCount;
     double fitTimeMS;
 
-    static FitSmileResult getInvalid(){
-        return {0,0,0,0,0,0,0,0};
+    static FitSmileResult getInvalid(const datetime_t &expiryDate){
+        return {0,0,0,0,0,0,0,0,0,0, expiryDate, 0, 0};
     }
 };
 

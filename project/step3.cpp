@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip> // for std::put_time and std::setw
 
 #include "CsvFeeder.h"
 #include "Msg.h"
@@ -36,11 +37,11 @@ std::string convertDateFormat(const std::string& date) {
     return oss.str();
 }
 
-void csvLineReport(const FitSmileResult& smileResult){
+void csvLineReport(const FitSmileResult& smileResult, std::ofstream& outputFile){
 
-    std::string line = "TIME, EXPIRY, FUT_PRICE, ATM, BF25, RR25, BF10, RR10\n";
+    // std::string line = "TIME, EXPIRY, FUT_PRICE, ATM, BF25, RR25, BF10, RR10\n";
     std::string dateTime = convertUnixMSToISO8601(smileResult.LastUpdateTimeStamp);
-    line += dateTime + ",";
+    std::string line = dateTime + ",";
 
     std::stringstream ss;    
     ss << smileResult.expiryDate;
@@ -54,16 +55,15 @@ void csvLineReport(const FitSmileResult& smileResult){
     line += std::to_string(smileResult.rr10) + "\n";
 
     std::cout << line; 
-    std::ofstream outputFile("output.csv", std::ios::app);
+    //std::ofstream outputFile("output.csv", std::ios::app);
 
     if (outputFile.is_open()) {
         outputFile << line; // Write the line to the file
-        outputFile.close(); // Close the file
+        //outputFile.close(); // Close the file
     }
     else {
         std::cout << "Error: Unable to open the file." << std::endl;
     }
-
 }
 
 int main(int argc, char** argv) {
@@ -75,25 +75,29 @@ int main(int argc, char** argv) {
     const char* ticker_filename = argv[1];
 
     VolSurfBuilder<CubicSmile> volBuilder;
+    std::ofstream outputFile("output.csv", std::ios::app);
+    std::string line = "TIME, EXPIRY, FUT_PRICE, ATM, BF25, RR25, BF10, RR10\n";
+    outputFile << line;
+
     auto feeder_listener = [&volBuilder] (const Msg& msg) {
         {
             volBuilder.Process(msg);
         }
     };
 
-    auto timer_listener = [&volBuilder] (uint64_t now_ms) {
+    auto timer_listener = [&volBuilder, &outputFile] (uint64_t now_ms) {
         // fit smile
         
+        // TODO: stream the smiles and their fitting error to outputFile.csv 
         auto smiles = volBuilder.FitSmiles();
+        bool headerPrinted = false;
 
+        // TODO: stream the smiles and their fitting error to outputFile.csv
         for (const auto& eachSmile: smiles){
-            csvLineReport(eachSmile.second);
+            csvLineReport(eachSmile.second, outputFile);
 
         }
 
-        // TODO: stream the smiles and their fitting error to outputFile.csv
-
-        
 
     };
 
@@ -102,7 +106,10 @@ int main(int argc, char** argv) {
                          feeder_listener,
                          interval,
                          timer_listener);
+
+
     while (csv_feeder.Step()) {
     }
+    outputFile.close();
     return 0;
 }

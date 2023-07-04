@@ -180,7 +180,7 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     double T = (expiryDate - (latestTime / 1000)) < 0 ? 0 : (expiryDate - (latestTime / 1000));
 
     if (T == 0)
-        return FitSmileResult::getInvalid();
+        return FitSmileResult::getInvalid(expiryDate);
 
     // std::cout << latestTime << std::endl;
     // std::cout << T << std::endl;
@@ -248,7 +248,7 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     try{
     niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
     } catch (std::runtime_error) {
-        return FitSmileResult::getInvalid();
+        return FitSmileResult::getInvalid(expiryDate);
     }
 
     // for (const auto& v : strikeIVWeight){
