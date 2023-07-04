@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip> // for std::put_time and std::setw
 
 #include "CsvFeeder.h"
 #include "Msg.h"
@@ -63,7 +64,6 @@ void csvLineReport(const FitSmileResult& smileResult, std::ofstream& outputFile)
     else {
         std::cout << "Error: Unable to open the file." << std::endl;
     }
-
 }
 
 int main(int argc, char** argv) {
@@ -88,7 +88,9 @@ int main(int argc, char** argv) {
     auto timer_listener = [&volBuilder, &outputFile] (uint64_t now_ms) {
         // fit smile
         
+        // TODO: stream the smiles and their fitting error to outputFile.csv 
         auto smiles = volBuilder.FitSmiles();
+        bool headerPrinted = false;
 
         // TODO: stream the smiles and their fitting error to outputFile.csv
         for (const auto& eachSmile: smiles){
