@@ -16,9 +16,19 @@
 #include <LBFGSB.h>
 #include <fstream>
 
+//Specific usage with CubicSmile is declared to prevent template
+//error
 template class VolSurfBuilder<CubicSmile>;
 
-// not within the class
+//namespace to store pre-determined values 
+namespace constants{
+    const double inf = std::numeric_limits<double>::infinity();
+    //some bound to prevent weird butterfly values
+    const Eigen::VectorXd lb {{-inf, 0, -inf, 0, -inf}};
+    const Eigen::VectorXd ub {{inf, inf, inf, inf, inf}};
+}
+
+// helper function to get both fwd and latest time in 1 for loop
 std::tuple<uint64_t, double> getLatestTimeAndPrice(const std::vector<TickData> &volTickerSnap)
 {
     double fwd;
@@ -34,6 +44,7 @@ std::tuple<uint64_t, double> getLatestTimeAndPrice(const std::vector<TickData> &
     return {LatestUpdateTimeStamp, fwd};
 }
 
+//instantiate CubicSmile object
 CubicSmile::CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10)
 {
     // convert delta marks to strike vol marks, setup strikeMarks, then call BUildInterp
@@ -120,17 +131,14 @@ double CubicSmile::Vol(double strike)
     return a * strikeMarks[i - 1].second + b * strikeMarks[i].second + c * y2[i - 1] + d * y2[i];
     }
 
-namespace constants{
-const double inf = std::numeric_limits<double>::infinity();
-//some bound to prevent weird butterfly values
-const Eigen::VectorXd lb {{-inf, 0, -inf, 0, -inf}};
-const Eigen::VectorXd ub {{inf, inf, inf, inf, inf}};
-}
-
+//Functor class to calculate mean squared error of a cubic smile given
+//atmvol, bf25, rr25, bf10, rr10 values and mapping of strike: [iv, weight] 
 class smile_MSE
 {
     private:
         datetime_t Expiry;
+
+        //this should be {strike: [iv: weight]}
         std::map<double, std::pair<double, double>> MIV;
         double fwd, T;
         bool print;
@@ -152,9 +160,6 @@ class smile_MSE
             size_t totalIterations = MIV.size();
             size_t currentIteration = 0;
             
-
-
-
             for (const auto& kVolPair: MIV){
                 if (print){
                     std::ofstream outputFile("output_analytics.csv", std::ios::app);   
@@ -211,6 +216,7 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     // TODO (step 3): fit a CubicSmile that is close to the raw tickers
     // - make sure all tickData are on the same expiry and same underlying
 
+    //{strike: [iv: weight]}
     std::map<double, std::pair<double, double>> strikeIVWeight;
 
     double atmvol;
@@ -243,13 +249,6 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
  
     std::cout << contractCount << std::endl;
 
-    // 1. TODO:
-    // We estimate 5 param using 5 closest iv to a given delta
-    //this does not seem to be worthwhile
-
-
-
-    // 2. TODO: 
     // Set up parameters
     LBFGSpp::LBFGSBParam<double> param;
     param.epsilon = 1e-6;
@@ -262,14 +261,13 @@ FitSmileResult CubicSmile::FitSmile(const datetime_t &expiryDate, const std::vec
     // ngrad::FirstCentralDiff funWithGrad(fun, 0.00001);
     ngrad::FirstForwardDifference funWithGrad(fun, 0.00001);
 
-    // std::cout << bf25 << " " << rr25 << " " << bf10 << " " << rr10 << std::endl;
-
-    Eigen::VectorXd x {{atmvol, 0.01, -0.14, 0.1, -0.2}}; //heuristic estimates
+    //heuristic estimates for initial approximation
+    Eigen::VectorXd x {{atmvol, 0.01, -0.14, 0.1, -0.2}}; 
     double fx;
 
     int niter;
     try{
-    niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
+        niter = solver.minimize(funWithGrad, x, fx, constants::lb, constants::ub);
     } catch (std::runtime_error) {
         return FitSmileResult::getInvalid(expiryDate);
     }

@@ -13,8 +13,6 @@ public:
     CubicSmile(double underlyingPrice, double T, double atmvol, double bf25, double rr25, double bf10, double rr10); // convert parameters to strikeMarks, then call BuildInterp() to create the cubic spline interpolator
     double Vol(double strike); // interpolate
 
-
-
 private:
     void BuildInterp();
     // strike to implied vol marks
