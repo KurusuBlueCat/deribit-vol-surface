@@ -53,15 +53,6 @@ void VolSurfBuilder<Smile>::Process(const Msg& msg){
 }
 
 
-/* template<class Smile>
-void VolSurfBuilder<Smile>::PrintInfo(){
-    std::cout << currentSurfaceRaw.size() << std::endl;
-    for (auto tickIter=currentSurfaceRaw.begin(); tickIter!=currentSurfaceRaw.end(); ++tickIter){
-        std:: cout << (tickIter->second).ContractName << std::endl;
-    }
-} */
-
-
 template<class Smile>
 void VolSurfBuilder<Smile>::PrintInfo(){
     std::cout << "==============^^^^^^^^^^^^^===============" << std::endl;
@@ -186,8 +177,7 @@ std::map<datetime_t, FitSmileResult> VolSurfBuilder<Smile>::FitSmiles() {
         std::cout << "niter: " << sm.niter << "; " << std::endl;
         std::cout << "fitTimeMS: " << sm.fitTimeMS << "; " << std::endl;
         std::cout << "==================================" << std::endl;
-        //res.insert(std::pair<datetime_t, std::pair<Smile, double> >(iter->first,std::pair<Smile, double>(sm, fittingError)));
-        res.insert(std::pair<datetime_t, FitSmileResult >(iter->first, sm));
+        res.insert(std::pair<datetime_t, FitSmileResult>(iter->first, sm));
     }
     return res;
 }
