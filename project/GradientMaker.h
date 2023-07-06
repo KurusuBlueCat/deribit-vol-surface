@@ -3,8 +3,14 @@
 #include <Eigen/Core>
 #include <LBFGS.h>
 
+//module for creating functions that can calculate both values and gradients
+//on each parameter in a modular fashion.
+//Each of the class included in this namespace can be instantiated with
+//a function and a stepsize, and it will returns a new functor.
 namespace ngrad{
 
+//Central difference with O(h^2) truncation error on gradient.
+//Requires extra 2*N evaluation, N=number of parameters
 template<class T>
 class FirstCentralDiff
 {
@@ -35,6 +41,8 @@ public:
     }
 };
 
+//Forward difference with O(h) truncation error on gradient.
+//Requires extra N evaluation, N=number of parameters
 template<class T>
 class FirstForwardDifference
 {
