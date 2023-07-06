@@ -6,6 +6,8 @@ Group Member:
 - Lee Chew Peng Caden
 - Lee Hiao Huang Lora
 
+# Setting Up
+
 The project requires cmake to compile. 
 Executables produced are (relative to build folder):
 
@@ -16,6 +18,8 @@ Executables produced are (relative to build folder):
 5. project/Solver/LBFGSpp/examples/test_lbfgs (example-rosenbrock-box.cpp)
 6. project/Solver/LBFGSpp/examples/test_lbfgs_2 (example-rosenbrock-bracketing.cpp)
 7. project/Solver/LBFGSpp/examples/test_lbfgs_3 (example-rosenbrock-comparison.cpp)
+
+# Required Data
 
 Don't forget to provide data in the folder TestData. The schema are as follows:
 
