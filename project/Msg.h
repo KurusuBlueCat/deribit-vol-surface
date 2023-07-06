@@ -60,15 +60,14 @@ struct TickData {
 
     TickData() = default;
     
-    // TODO: Interpolate this from price
-    // TODO: null and 0 might appear here, find a way to handle them
-    //this is quoted in 'percentage' IV of 50 is 50% or 0.5
+    //Choose non null or average
     double getMidIV() const {
         return BestBidIV == 0 ? BestAskIV : 
                BestAskIV == 0 ? BestBidIV : 
                                 (BestBidIV + BestAskIV)/2;
     }
 
+    //returns null if any of bid or ask is null
     double getMidIVNaN() const {
         if ((BestBidIV == 0) || (BestAskIV) == 0)
             return 0;
@@ -107,21 +106,12 @@ struct TickData {
     }
 };
 
-//std::ostream& operator<< (std::ostream& os, const TickData& tick);
-
 struct Msg {
     uint64_t timestamp{};
     bool isSnap;
     // bool isSet = false;
     std::vector<TickData> Updates;
 };
-
-// //Added by Lora on Sat
-// std::string Expirydate = getExpiry();
-
-// struct Date_Time{    
-//     std::string Expirydate; 
-// }
 
 struct FitSmileResult {
     double smileError;
