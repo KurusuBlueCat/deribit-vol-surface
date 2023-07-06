@@ -8,12 +8,18 @@
 
 #include "Msg.h"
 
+//Class for reading csv file without having to reread again on each
+//msg update
 class CsvFileBuffer {
 private:
     std::ifstream& file;
+
+    //this is used to hold to the next line read in csv
     std::vector<std::string> latestTokens;
     u_int64_t latestTime;
     bool eof_=false;
+
+    //this loads data from row into this object's tokens_vector
     void loadTokens(const std::string& row, std::vector<std::string>& tokens_vector);
     void emplaceToMsg(Msg& msg, const std::vector<std::string>& tokens_vector);
 public:
